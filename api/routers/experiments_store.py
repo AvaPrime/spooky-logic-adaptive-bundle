@@ -5,14 +5,25 @@ import os, psycopg2
 router = APIRouter(prefix="/expstore", tags=["experiments-store"])
 
 def conn():
+    """Establishes a connection to the PostgreSQL database."""
     dsn = os.getenv("POSTGRES_URL", "postgresql://spooky:spooky@postgres:5432/spooky")
     return psycopg2.connect(dsn)
 
 class CreateExp(BaseModel):
+    """Request model for the /create endpoint."""
     name: str
 
 @router.post("/create")
 def create_exp(req: CreateExp):
+    """
+    Creates a new experiment.
+
+    Args:
+        req (CreateExp): The request to create a new experiment.
+
+    Returns:
+        dict: A dictionary containing the ID and name of the new experiment.
+    """
     with conn() as c:
         with c.cursor() as cur:
             cur.execute("INSERT INTO experiments(name) VALUES (%s) ON CONFLICT DO NOTHING RETURNING id", (req.name,))
@@ -22,6 +33,7 @@ def create_exp(req: CreateExp):
     return {"id": exp_id, "name": req.name}
 
 class Record(BaseModel):
+    """Request model for the /record endpoint."""
     experiment: str
     arm: str
     score: float
@@ -31,6 +43,18 @@ class Record(BaseModel):
 
 @router.post("/record")
 def record(r: Record):
+    """
+    Records an experiment result in the database.
+
+    Args:
+        r (Record): The experiment result to record.
+
+    Returns:
+        dict: A dictionary indicating success.
+
+    Raises:
+        HTTPException: If the experiment is not found.
+    """
     with conn() as c:
         with c.cursor() as cur:
             cur.execute("SELECT id FROM experiments WHERE name=%s", (r.experiment,))

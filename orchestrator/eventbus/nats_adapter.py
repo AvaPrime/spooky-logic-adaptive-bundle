@@ -6,21 +6,48 @@ except Exception:
     NATS = None
 
 class NATSAdapter:
+    """An adapter for interacting with NATS."""
     def __init__(self, servers: str = "nats://localhost:4222", subject: str = "spooky.events"):
+        """
+        Initializes the NATSAdapter.
+
+        Args:
+            servers (str, optional): The NATS servers to connect to. Defaults to "nats://localhost:4222".
+            subject (str, optional): The subject to publish to and subscribe from. Defaults to "spooky.events".
+        """
         self.servers = servers
         self.subject = subject
         self.nc = NATS() if NATS else None
 
     async def connect(self):
+        """
+        Connects to the NATS server.
+
+        Raises:
+            RuntimeError: If the nats-py library is not installed.
+        """
         if not self.nc:
             raise RuntimeError("pynats not installed. pip install nats-py")
         await self.nc.connect(servers=[self.servers])
 
     async def publish(self, event: dict):
+        """
+        Publishes an event to NATS.
+
+        Args:
+            event (dict): The event to publish.
+        """
         data = json.dumps(event).encode("utf-8")
         await self.nc.publish(self.subject, data)
 
     async def subscribe(self, handler: Callable[[dict], Awaitable[None]], queue: Optional[str] = None):
+        """
+        Subscribes to a NATS subject and handles messages.
+
+        Args:
+            handler (Callable[[dict], Awaitable[None]]): The handler function for incoming messages.
+            queue (Optional[str], optional): The queue to subscribe to. Defaults to None.
+        """
         async def _cb(msg):
             try:
                 payload = json.loads(msg.data.decode("utf-8"))
@@ -30,5 +57,6 @@ class NATSAdapter:
         await self.nc.subscribe(self.subject, queue=queue, cb=_cb)
 
     async def close(self):
+        """Closes the NATS connection."""
         if self.nc:
             await self.nc.drain()

@@ -25,6 +25,7 @@ class GovernanceState:
     _db_state: Optional[DatabaseGovernanceState] = field(default=None, init=False)
     _use_database: bool = field(default=USE_DATABASE, init=False)
 
+<<<<<<< HEAD
     async def _ensure_db_connection(self):
         """Ensure database connection is established."""
         if self._use_database and self._db_manager is None:
@@ -35,6 +36,15 @@ class GovernanceState:
     
     async def apply_proposal(self, proposal: Dict[str, Any]):
         """Apply a proposal to both in-memory and database storage."""
+=======
+    def apply_proposal(self, proposal: Dict[str, Any]):
+        """
+        Applies a proposal to the governance state.
+
+        Args:
+            proposal (Dict[str, Any]): The proposal to apply.
+        """
+>>>>>>> 3c4a90cdb18cd40d228da1653114b2f244bb47fd
         pid = str(proposal["id"])
         ts = proposal.get("ts", time.time())
         
@@ -46,8 +56,18 @@ class GovernanceState:
             await self._ensure_db_connection()
             await self._db_state.apply_proposal(proposal)
 
+<<<<<<< HEAD
     async def apply_vote(self, vote: Dict[str, Any]):
         """Apply a vote to both in-memory and database storage."""
+=======
+    def apply_vote(self, vote: Dict[str, Any]):
+        """
+        Applies a vote to the governance state.
+
+        Args:
+            vote (Dict[str, Any]): The vote to apply.
+        """
+>>>>>>> 3c4a90cdb18cd40d228da1653114b2f244bb47fd
         key = f"{vote['proposal_id']}:{vote['voter']}"
         ts = vote.get("ts", time.time())
         
@@ -59,9 +79,19 @@ class GovernanceState:
             await self._ensure_db_connection()
             await self._db_state.apply_vote(vote)
 
+<<<<<<< HEAD
     async def merge(self, other: "GovernanceState"):
         """Merge another governance state into this one."""
         # Merge in-memory data
+=======
+    def merge(self, other: "GovernanceState"):
+        """
+        Merges another GovernanceState into this one.
+
+        Args:
+            other (GovernanceState): The other GovernanceState to merge.
+        """
+>>>>>>> 3c4a90cdb18cd40d228da1653114b2f244bb47fd
         self.proposals.merge(other.proposals)
         self.votes.merge(other.votes)
         
@@ -70,6 +100,7 @@ class GovernanceState:
             await self._ensure_db_connection()
             await self._db_state.merge(other._db_state)
 
+<<<<<<< HEAD
     async def serialize(self) -> Dict[str, Any]:
         """Serialize governance state to dictionary."""
         if self._use_database:
@@ -182,6 +213,28 @@ class LegacyGovernanceState(GovernanceState):
     
     @classmethod
     def deserialize(cls, data: Dict[str, Any]) -> "LegacyGovernanceState":
+=======
+    def serialize(self) -> Dict[str, Any]:
+        """
+        Serializes the governance state to a dictionary.
+
+        Returns:
+            Dict[str, Any]: A dictionary representation of the governance state.
+        """
+        return {"proposals": self.proposals.to_dict(), "votes": self.votes.to_dict()}
+
+    @classmethod
+    def deserialize(cls, data: Dict[str, Any]) -> "GovernanceState":
+        """
+        Deserializes a dictionary into a GovernanceState object.
+
+        Args:
+            data (Dict[str, Any]): The dictionary to deserialize.
+
+        Returns:
+            GovernanceState: The deserialized GovernanceState object.
+        """
+>>>>>>> 3c4a90cdb18cd40d228da1653114b2f244bb47fd
         g = cls()
         for pid, p in data.get("proposals", {}).items():
             g.proposals.put(pid, p, p.get("ts", time.time()))

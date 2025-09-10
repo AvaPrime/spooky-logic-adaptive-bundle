@@ -5,6 +5,7 @@ import time
 
 @dataclass
 class RollbackPlan:
+    """Represents a plan for rolling back a capability."""
     capability_id: str
     reason: str
     start_ts: float = field(default_factory=time.time)
@@ -14,18 +15,50 @@ class RollbackPlan:
     active: bool = True
 
 class AutoRollbackController:
+    """Controls the automated rollback of capabilities."""
     def __init__(self):
+        """Initializes the AutoRollbackController."""
         self.plans: Dict[str, RollbackPlan] = {}
 
     def start(self, capability_id: str, reason: str, stages=None, interval_sec: int = 120) -> RollbackPlan:
+        """
+        Starts a new rollback plan.
+
+        Args:
+            capability_id (str): The ID of the capability to roll back.
+            reason (str): The reason for the rollback.
+            stages (_type_, optional): The stages of the rollback. Defaults to None.
+            interval_sec (int, optional): The interval between stages in seconds. Defaults to 120.
+
+        Returns:
+            RollbackPlan: The created rollback plan.
+        """
         plan = RollbackPlan(capability_id, reason, stages=stages or [0.25,0.50,0.75,1.0], interval_sec=interval_sec)
         self.plans[capability_id] = plan
         return plan
 
     def status(self, capability_id: str) -> Optional[RollbackPlan]:
+        """
+        Gets the status of a rollback plan.
+
+        Args:
+            capability_id (str): The ID of the capability to get the status of.
+
+        Returns:
+            Optional[RollbackPlan]: The rollback plan, or None if not found.
+        """
         return self.plans.get(capability_id)
 
     def tick(self, capability_id: str) -> Dict:
+        """
+        Moves a rollback plan to the next stage.
+
+        Args:
+            capability_id (str): The ID of the capability to tick.
+
+        Returns:
+            Dict: A dictionary containing the status of the rollback plan.
+        """
         plan = self.plans.get(capability_id)
         if not plan or not plan.active:
             return {"active": False}

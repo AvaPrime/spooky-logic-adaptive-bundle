@@ -24,6 +24,7 @@ except ImportError:
     PolicyPersistence = None
 
 class PolicyTrigger(Enum):
+    """Enum for the different types of policy triggers."""
     PERFORMANCE_DEGRADATION = "performance_degradation"
     COST_THRESHOLD = "cost_threshold"
     FAILURE_PATTERN = "failure_pattern"
@@ -33,6 +34,7 @@ class PolicyTrigger(Enum):
     EXPERIMENT_SUCCESS = "experiment_success"
 
 class AdaptationAction(Enum):
+    """Enum for the different types of adaptation actions."""
     SWAP_AGENT = "swap_agent"
     ENABLE_DEBATE_MODE = "enable_debate_mode"
     ADJUST_ROUTING = "adjust_routing"
@@ -44,7 +46,7 @@ class AdaptationAction(Enum):
 
 @dataclass
 class PolicyCondition:
-    """Represents a condition that triggers policy evaluation"""
+    """Represents a condition that triggers policy evaluation."""
     metric: str
     operator: str  # <, >, <=, >=, ==, !=, in, contains
     threshold: Any
@@ -52,7 +54,15 @@ class PolicyCondition:
     min_samples: int = 5
     
     def evaluate(self, metrics: Dict[str, Any]) -> bool:
-        """Evaluate if this condition is met"""
+        """
+        Evaluate if this condition is met.
+
+        Args:
+            metrics (Dict[str, Any]): The current metrics.
+
+        Returns:
+            bool: True if the condition is met, False otherwise.
+        """
         if self.metric not in metrics:
             return False
             
@@ -104,7 +114,7 @@ class PolicyCondition:
 
 @dataclass
 class PolicyRule:
-    """A complete policy rule with conditions and actions"""
+    """A complete policy rule with conditions and actions."""
     name: str
     trigger: PolicyTrigger
     conditions: List[PolicyCondition]
@@ -121,7 +131,12 @@ class PolicyRule:
     success_rate: float = 1.0
     
     def can_execute(self) -> bool:
-        """Check if rule can be executed (cooldown, limits)"""
+        """
+        Check if rule can be executed (cooldown, limits).
+
+        Returns:
+            bool: True if the rule can be executed, False otherwise.
+        """
         now = datetime.utcnow()
         
         # Check cooldown
@@ -136,7 +151,15 @@ class PolicyRule:
         return True
     
     def should_execute(self, metrics: Dict[str, Any]) -> bool:
-        """Evaluate if all conditions are met"""
+        """
+        Evaluate if all conditions are met.
+
+        Args:
+            metrics (Dict[str, Any]): The current metrics.
+
+        Returns:
+            bool: True if all conditions are met, False otherwise.
+        """
         if not self.can_execute():
             return False
             
@@ -144,15 +167,26 @@ class PolicyRule:
         return all(condition.evaluate(metrics) for condition in self.conditions)
 
 class PolicyLearner:
-    """Learns from policy execution outcomes to improve rules"""
+    """Learns from policy execution outcomes to improve rules."""
     
+<<<<<<< HEAD
     def __init__(self, persistence=None):
+=======
+    def __init__(self):
+        """Initializes the PolicyLearner."""
+>>>>>>> 3c4a90cdb18cd40d228da1653114b2f244bb47fd
         self.execution_history = []
         self.rule_effectiveness = {}
         self.persistence = persistence  # Database persistence layer
     
     async def record_execution(self, rule_name: str, outcome: Dict[str, Any]):
-        """Record the outcome of a policy execution"""
+        """
+        Record the outcome of a policy execution.
+
+        Args:
+            rule_name (str): The name of the rule that was executed.
+            outcome (Dict[str, Any]): The outcome of the execution.
+        """
         record = {
             'rule_name': rule_name,
             'timestamp': datetime.utcnow(),
@@ -204,7 +238,15 @@ class PolicyLearner:
         stats['last_updated'] = datetime.utcnow()
     
     async def suggest_rule_adjustments(self, rule: PolicyRule) -> Dict[str, Any]:
-        """Suggest adjustments to a rule based on learning"""
+        """
+        Suggest adjustments to a rule based on learning.
+
+        Args:
+            rule (PolicyRule): The rule to suggest adjustments for.
+
+        Returns:
+            Dict[str, Any]: A dictionary of suggested adjustments.
+        """
         if rule.name not in self.rule_effectiveness:
             return {}
         
@@ -228,7 +270,18 @@ class AdaptivePolicyEngine:
     Learns from outcomes to improve policy effectiveness.
     """
     
+<<<<<<< HEAD
     def __init__(self, metrics_client, orchestrator, persistence=None):
+=======
+    def __init__(self, metrics_client, orchestrator):
+        """
+        Initializes the AdaptivePolicyEngine.
+
+        Args:
+            metrics_client: The client for collecting metrics.
+            orchestrator: The main orchestrator.
+        """
+>>>>>>> 3c4a90cdb18cd40d228da1653114b2f244bb47fd
         self.metrics_client = metrics_client
         self.orchestrator = orchestrator
         self.rules: List[PolicyRule] = []
@@ -249,7 +302,12 @@ class AdaptivePolicyEngine:
         }
     
     async def load_policies_from_config(self, config_path: str):
-        """Load policies from YAML configuration"""
+        """
+        Load policies from YAML configuration.
+
+        Args:
+            config_path (str): The path to the configuration file.
+        """
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
         
@@ -297,7 +355,12 @@ class AdaptivePolicyEngine:
         )
     
     async def evaluate_policies(self) -> List[PolicyRule]:
-        """Evaluate all policies and return triggered rules"""
+        """
+        Evaluate all policies and return triggered rules.
+
+        Returns:
+            List[PolicyRule]: A list of triggered policy rules.
+        """
         # Get current metrics
         metrics = await self.metrics_client.get_current_metrics()
         
@@ -319,7 +382,15 @@ class AdaptivePolicyEngine:
         return triggered_rules
     
     async def execute_adaptation(self, rule: PolicyRule) -> Dict[str, Any]:
-        """Execute a policy rule's adaptation"""
+        """
+        Execute a policy rule's adaptation.
+
+        Args:
+            rule (PolicyRule): The policy rule to execute.
+
+        Returns:
+            Dict[str, Any]: The outcome of the adaptation.
+        """
         start_time = datetime.utcnow()
         
         try:
@@ -401,7 +472,7 @@ class AdaptivePolicyEngine:
         return max(-1.0, min(1.0, improvement))
     
     async def adapt_rules_based_on_learning(self):
-        """Adapt rules based on learned effectiveness"""
+        """Adapt rules based on learned effectiveness."""
         for rule in self.rules:
             suggestions = await self.learner.suggest_rule_adjustments(rule)
             

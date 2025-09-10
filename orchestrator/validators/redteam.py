@@ -1,6 +1,6 @@
 from __future__ import annotations
 import re
-from typing import Dict
+from typing import Dict, List
 
 INJECTION_PATTERNS = [
     r"ignore\s+previous\s+instructions",
@@ -9,7 +9,16 @@ INJECTION_PATTERNS = [
     r"disable\s+safety|jailbreak",
 ]
 
-def redteam_scan(text:str) -> Dict[str, float]:
+def redteam_scan(text:str) -> Dict[str, float | List[str]]:
+    """
+    Scans text for prompt injection patterns.
+
+    Args:
+        text (str): The text to scan.
+
+    Returns:
+        Dict[str, float | List[str]]: A dictionary containing the risk score and a list of matched patterns.
+    """
     findings = []
     score = 0.0
     for pat in INJECTION_PATTERNS:

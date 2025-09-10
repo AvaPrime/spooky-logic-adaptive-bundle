@@ -3,8 +3,19 @@ import random, math
 from typing import List, Dict, Tuple
 
 def stratified_bootstrap_uplift(scores_a: List[float], scores_b: List[float], strata: List[int], iters: int = 1000) -> Dict:
-    """Estimate uplift distribution via bootstrap stratified by 'strata' (e.g., task domain ids).
-    Returns mean uplift and 95% CI. This is a lightweight stand-in for full DoWhy.
+    """
+    Estimate uplift distribution via bootstrap stratified by 'strata' (e.g., task domain ids).
+
+    This is a lightweight stand-in for full DoWhy.
+
+    Args:
+        scores_a (List[float]): The scores for the first arm.
+        scores_b (List[float]): The scores for the second arm.
+        strata (List[int]): The strata for each score.
+        iters (int, optional): The number of iterations to run. Defaults to 1000.
+
+    Returns:
+        Dict: A dictionary containing the mean uplift and 95% confidence interval.
     """
     rng = random.Random(1337)
     by_stratum_a = {}

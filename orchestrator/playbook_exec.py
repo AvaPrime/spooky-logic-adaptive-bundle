@@ -5,6 +5,18 @@ from orchestrator.playbooks import load_playbook
 from orchestrator.clients.router import Router
 
 async def run_playbook(name: str, goal: str, budget: float, risk: int) -> dict:
+    """
+    Runs a playbook.
+
+    Args:
+        name (str): The name of the playbook to run.
+        goal (str): The goal to achieve.
+        budget (float): The budget for the playbook.
+        risk (int): The risk level for the playbook.
+
+    Returns:
+        dict: A dictionary containing the result of the playbook execution.
+    """
     pb = load_playbook(name)
     t0 = time.perf_counter()
     ctx = await llm_client.call_llm("navigator", f"Interpret goal: {goal}")
