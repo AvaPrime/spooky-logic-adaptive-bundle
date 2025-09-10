@@ -1,0 +1,162 @@
+# Operator Guide — Codessian Adaptive Orchestrator (Spooky Logic)
+
+This document provides **deep operational guidance** for running and maintaining the **Spooky Logic Adaptive Orchestrator**. It expands beyond the README to cover:
+- Runbooks
+- Troubleshooting flows
+- Recovery playbooks
+- Visual diagrams for decision support
+
+---
+
+## 🔧 Daily Operations
+
+### Health Checks
+- `make ship-check` — runs lint, typecheck, unit tests, OPA eval, SBOM + cosign verify.
+- `kubectl get pods -n spooky` — confirm all pods healthy.
+- Grafana boards: check *Overview* and *Spend* dashboards daily.
+
+### Backups
+- Run `ops/backup.sh` nightly for Postgres + playbooks.
+- Verify backups with `ops/restore.sh --dry-run` weekly.
+
+### Key Rotations
+- Rotate ed25519 signing keys every 90 days.
+- Use Vault/KMS to store new keys, update orchestrator config, re-sign manifests.
+
+---
+
+## 🚨 Troubleshooting Flows
+
+### Federation Drift
+**Symptom:** Clusters disagree on router weights or promotion decisions.
+
+```mermaid
+graph TD
+    A[Detect Drift Alert] --> B{CRDT Hash Mismatch?}
+    B -- Yes --> C[Run cli/spookyfed.py reconcile]
+    C --> D{Reconciled?}
+    D -- No --> E[Snapshot from primary cluster]
+    E --> F[Rehydrate dependents]
+    D -- Yes --> G[Monitor]
+    B -- No --> H[Investigate other causes]
+```
+
+---
+
+### Promotion Loops
+**Symptom:** Variant promoted/demoted repeatedly.
+
+```mermaid
+graph TD
+    A[Promotion Loop Detected] --> B{OPA Policies Valid?}
+    B -- No --> C[Fix tenant_autonomy or causal_promotion policies]
+    B -- Yes --> D{Duplicate Bus Events?}
+    D -- Yes --> E[Enable Idempotency Filter]
+    D -- No --> F[Increase Trial Period]
+```
+
+---
+
+### Absorption Failures
+**Symptom:** New capability fails integration.
+
+```mermaid
+graph TD
+    A[Absorption Failure] --> B[Check logs: absorption-api]
+    B --> C{Win Rate < 0.2?}
+    C -- Yes --> D[Quarantine capability]
+    D --> E[Investigate manually / force integrate if critical]
+    C -- No --> F[Retry test suite]
+```
+
+---
+
+### Policy Drift
+**Symptom:** Different clusters apply divergent policies.
+
+```mermaid
+graph TD
+    A[Policy Mismatch Detected] --> B[Compare policy digests]
+    B --> C{Match?}
+    C -- No --> D[Resync from GitOps repo]
+    D --> E[Alert Operators]
+    C -- Yes --> F[Investigate config divergence]
+```
+
+---
+
+## 🔄 Recovery Playbooks
+
+### CRDT Merge Storm
+1. Detect via elevated CPU + lag on `orchestrator/federation/crdt.py`.
+2. Apply merge budget (configurable cap per tick).
+3. Run chaos test harness to confirm convergence.
+4. Snapshot healthy state, roll back bad state.
+
+```mermaid
+graph TD
+    A[High CPU + Lag Detected] --> B[Apply Merge Budget]
+    B --> C[Run Chaos Test Harness]
+    C --> D{Converged?}
+    D -- Yes --> E[Continue Monitoring]
+    D -- No --> F[Snapshot Healthy State]
+    F --> G[Rollback to Snapshot]
+```
+
+### Rollback Controller Trigger
+
+```mermaid
+graph TD
+    A[Rollback Triggered] --> B[Check Canary Metrics]
+    B --> C{Accuracy < Threshold?}
+    C -- Yes --> D[Rollback Variant]
+    D --> E[Re-enable Control Playbook]
+    E --> F[Investigate Root Cause]
+    C -- No --> G[Validate Metrics Source]
+```
+
+### Key Compromise
+1. Revoke compromised signing key in Rekor transparency log.
+2. Rotate to new keypair via Vault.
+3. Re-sign all manifests and bundles.
+4. Audit provenance trails for potential malicious entries.
+
+---
+
+## 🧪 Chaos Testing
+
+Run monthly:
+- **Network partition:** isolate federation nodes, confirm convergence post-heal.
+- **Event bus outage:** stop NATS/Kafka, validate replay/dedupe works.
+- **Policy misfire:** inject failing policy; confirm human-in-loop escalation.
+- **Budget exhaustion:** simulate runaway costs; check graceful degrade.
+
+---
+
+## 📊 Observability Playbook
+
+### Grafana Dashboards
+- **Overview**: health & throughput.
+- **Quality**: accuracy vs cost.
+- **Spend**: daily + hourly burn rate.
+- **Latency**: P50/P95/P99.
+- **Absorption**: trial win rates, integrated capabilities.
+
+### Alerts
+- Accuracy < 0.7 for > 30m.
+- Daily cost > $1,000.
+- Absorption trial success < 0.2.
+- Federation CRDT divergence detected.
+
+---
+
+## 📚 References
+- [README.md](../README.md)
+- [Absorption API](../absorption_api_implementation.py)
+- [Policy Engine](../policy_engine_design.py)
+- [Config](../adaptive_orchestrator_config.md)
+- [Helm/Kustomize](../iac/)
+
+---
+
+This guide is **living documentation**. Operators are encouraged to contribute new runbooks, failure scenarios, diagrams, and lessons learned back into this file.

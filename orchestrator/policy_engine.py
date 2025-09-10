@@ -16,6 +16,13 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 import logging
 
+# Import database persistence classes
+try:
+    from .governance.persistence import PolicyPersistence
+except ImportError:
+    # Fallback for when persistence is not available
+    PolicyPersistence = None
+
 class PolicyTrigger(Enum):
     PERFORMANCE_DEGRADATION = "performance_degradation"
     COST_THRESHOLD = "cost_threshold"
@@ -139,9 +146,10 @@ class PolicyRule:
 class PolicyLearner:
     """Learns from policy execution outcomes to improve rules"""
     
-    def __init__(self):
+    def __init__(self, persistence=None):
         self.execution_history = []
         self.rule_effectiveness = {}
+        self.persistence = persistence  # Database persistence layer
     
     async def record_execution(self, rule_name: str, outcome: Dict[str, Any]):
         """Record the outcome of a policy execution"""
@@ -153,7 +161,18 @@ class PolicyLearner:
             'improvement_score': outcome.get('improvement_score', 0)
         }
         
-        self.execution_history.append(record)
+        # Store in database if persistence is available
+        if self.persistence:
+            await self.persistence.record_policy_execution(
+                rule_name=rule_name,
+                outcome=outcome,
+                success=record['success'],
+                improvement_score=record['improvement_score']
+            )
+        else:
+            # Fallback to in-memory storage
+            self.execution_history.append(record)
+        
         await self._update_rule_effectiveness(rule_name, record)
     
     async def _update_rule_effectiveness(self, rule_name: str, record: Dict[str, Any]):
@@ -209,11 +228,12 @@ class AdaptivePolicyEngine:
     Learns from outcomes to improve policy effectiveness.
     """
     
-    def __init__(self, metrics_client, orchestrator):
+    def __init__(self, metrics_client, orchestrator, persistence=None):
         self.metrics_client = metrics_client
         self.orchestrator = orchestrator
         self.rules: List[PolicyRule] = []
-        self.learner = PolicyLearner()
+        self.learner = PolicyLearner(persistence)
+        self.persistence = persistence
         self.logger = logging.getLogger(__name__)
         
         # Action handlers
@@ -236,6 +256,20 @@ class AdaptivePolicyEngine:
         for rule_config in config.get('policies', []):
             rule = self._parse_rule_config(rule_config)
             self.rules.append(rule)
+            
+            # Store rule in database if persistence is available
+            if self.persistence:
+                await self.persistence.store_policy_rule(rule)
+    
+    async def load_policies_from_database(self):
+        """Load policies from database"""
+        if not self.persistence:
+            self.logger.warning("No persistence layer configured")
+            return
+        
+        stored_rules = await self.persistence.get_policy_rules()
+        self.rules.extend(stored_rules)
+        self.logger.info(f"Loaded {len(stored_rules)} policies from database")
     
     def _parse_rule_config(self, config: Dict[str, Any]) -> PolicyRule:
         """Parse a rule configuration into a PolicyRule object"""
