@@ -1,43 +1,71 @@
-# Spooky Logic — Codessian Adaptive Orchestrator (v0.1 Starter)
+# Spooky Logic — Codessian Adaptive Orchestrator
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Become the board. Absorb the game. Rewrite the rules.
 
-## What this is
-A runnable starter scaffold for the **Adaptive Orchestrator**:
-- **FastAPI** ingress (`/orchestrate`) + operator endpoints
-- **Temporal** worker orchestrating playbooks (control vs variant)
-- **MHE client** placeholders (hybrid search, memory writes)
-- **OPA/Rego** policy gates (budget, egress, quality)
-- **Prometheus** + **Grafana** telemetry (basic boards)
-- **Docker Compose** for local dev
+The Codessian Adaptive Orchestrator is a sophisticated framework for building and managing complex, AI-driven workflows. It is designed to be highly modular, adaptable, and observable, allowing you to create, test, and deploy new strategies with ease.
 
-> This is intentionally minimal. Add real model connectors and your MHE endpoints, then iterate playbooks.
+## Architecture
+
+The orchestrator is composed of several key components that work together to provide a powerful and flexible platform for AI orchestration.
+
+*   **FastAPI Service (`api/`)**: The main entry point for the orchestrator. It provides a set of RESTful endpoints for interacting with the system, including orchestrating new goals, managing playbooks, and registering external agents.
+
+*   **Temporal Worker (`orchestrator/`)**: The heart of the orchestrator. It uses the [Temporal](https://temporal.io/) workflow engine to execute playbooks, which are YAML files that define a sequence of steps for achieving a goal.
+
+*   **Playbooks (`playbooks/`)**: YAML files that define the steps for achieving a goal. They can be composed of multiple steps, including calling LLMs, running external tools, and making decisions based on the results of previous steps.
+
+*   **Policy Engine (`orchestrator/policy_engine.py`)**: A dynamic rule engine that evaluates performance metrics and triggers orchestration adaptations. It uses [OPA/Rego](https://www.openpolicyagent.org/) to enforce policies and make decisions about how to adapt the system.
+
+*   **Metrics and Telemetry (`orchestrator/metrics.py`, `telemetry/`)**: The orchestrator is fully instrumented with [Prometheus](https://prometheus.io/) metrics and [OpenTelemetry](https://opentelemetry.io/) tracing. It also includes a [Grafana](https://grafana.com/) dashboard for visualizing the system's performance.
+
+*   **Docker Compose (`docker-compose.yml`)**: The entire system can be run locally using Docker Compose, making it easy to get started with development.
 
 ## Quickstart
-```bash
-# 1) Copy env and edit
-cp .env.example .env
 
-# 2) Bring up infra + app
-docker compose up --build -d
+1.  **Copy the environment file and edit it to your needs:**
 
-# 3) Hit the API
-curl -X POST http://localhost:8080/orchestrate -H "Content-Type: application/json"   -d '{"goal":"Write a Python function to fibonacci(n) with tests","budget_usd":0.05,"risk":2}'
-```
+    ```bash
+    cp .env.example .env
+    ```
 
-## Layout
-```
-api/                 FastAPI service (ingress + operator APIs)
-orchestrator/        Temporal worker, strategies, router, clients
-policies/            OPA Rego bundles
-playbooks/           Orchestration strategies (YAML)
-telemetry/           Prometheus + Grafana
-docker/              Healthchecks, Dockerfiles
-tests/               Basic test harness (toy)
-```
+2.  **Bring up the infrastructure and application:**
 
-## Next steps
-- Wire real LLM providers (OpenAI, Anthropic, Ollama) in `clients/llm_client.py`.
-- Connect to your MHE endpoints in `clients/mhe_client.py`.
-- Expand playbooks and enable A/B trials via `/playbooks/:id/trial`.
-- Add absorption trials by registering external tools at `/agents/register`.
+    ```bash
+    docker compose up --build -d
+    ```
+
+3.  **Hit the API to orchestrate a new goal:**
+
+    ```bash
+    curl -X POST http://localhost:8080/orchestrate \
+      -H "Content-Type: application/json" \
+      -d '{"goal":"Write a Python function to calculate fibonacci(n) with tests","budget_usd":0.05,"risk":2}'
+    ```
+
+## Configuration
+
+The orchestrator is configured using a YAML file located at `config/adaptive_orchestrator.yaml`. This file contains the configuration for all the major components of the system, including the policy engine, the absorption API, and the metrics client.
+
+The policies themselves are written in Rego and are located in the `policies/` directory.
+
+## Contributing
+
+We welcome contributions to the Codessian Adaptive Orchestrator! If you would like to contribute, please follow these steps:
+
+1.  Fork the repository.
+2.  Create a new branch for your feature or bug fix.
+3.  Make your changes and commit them with a descriptive commit message.
+4.  Push your changes to your fork.
+5.  Open a pull request to the main repository.
+
+Please make sure to add tests for your changes and to follow the existing coding style.
+
+## API Reference
+
+The API is documented using OpenAPI and can be accessed at `http://localhost:8080/docs` when the application is running.
+
+## License
+
+The Codessian Adaptive Orchestrator is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.

@@ -6,10 +6,22 @@ TASKS = Counter("spooky_worker_tasks_total", "Worker tasks completed", ["playboo
 LAT = Histogram("spooky_worker_task_latency_seconds", "Worker task latency (s)", buckets=[0.1,0.25,0.5,1,2,5,10])
 
 def boot_metrics_server(port: int = 8000):
+    """
+    Starts an HTTP server for exposing Prometheus metrics.
+
+    Args:
+        port (int, optional): The port to start the server on. Defaults to 8000.
+    """
     start_http_server(port)
 
 @contextmanager
 def timed_task(playbook: str):
+    """
+    A context manager for timing tasks and collecting metrics.
+
+    Args:
+        playbook (str): The name of the playbook being timed.
+    """
     t0 = time()
     try:
         yield

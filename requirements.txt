@@ -9,7 +9,3 @@ prometheus-client==0.20.0
 pyyaml==6.0.2
 sympy==1.13.2
 pytest==8.3.3
-pytest-asyncio
-openai
-anthropic
-ollama

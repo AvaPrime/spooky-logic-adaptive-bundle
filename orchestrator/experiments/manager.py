@@ -4,19 +4,42 @@ from collections import defaultdict
 from typing import Dict, List, Tuple
 
 class ABResult:
+    """Represents the result of an A/B test."""
     def __init__(self, playbook:str, score:float, cost:float, latency_ms:float):
+        """
+        Initializes the ABResult.
+
+        Args:
+            playbook (str): The playbook that was run.
+            score (float): The score of the result.
+            cost (float): The cost of the result.
+            latency_ms (float): The latency of the result in milliseconds.
+        """
         self.playbook = playbook
         self.score = score
         self.cost = cost
         self.latency_ms = latency_ms
         self.ts = time.time()
 
-def mean(xs): return sum(xs)/max(1,len(xs))
+def mean(xs):
+    """Calculates the mean of a list of numbers."""
+    return sum(xs)/max(1,len(xs))
 def var(xs, m): 
+    """Calculates the variance of a list of numbers."""
     n = len(xs)
     return (sum((x-m)**2 for x in xs) / (n-1)) if n>1 else 0.0
 
 def welch_ttest(a:List[float], b:List[float]) -> Tuple[float,float]:
+    """
+    Performs Welch's t-test.
+
+    Args:
+        a (List[float]): The first sample.
+        b (List[float]): The second sample.
+
+    Returns:
+        Tuple[float,float]: A tuple containing the t-statistic and degrees of freedom.
+    """
     # Returns (t_stat, df). p-value can be approximated externally if needed.
     ma, mb = mean(a), mean(b)
     va, vb = var(a, ma), var(b, mb)
@@ -31,16 +54,46 @@ def welch_ttest(a:List[float], b:List[float]) -> Tuple[float,float]:
     return t, df
 
 class ExperimentManager:
+    """Manages experiments."""
     def __init__(self, promote_uplift=0.03, max_cost_delta=0.10, min_n=10):
+        """
+        Initializes the ExperimentManager.
+
+        Args:
+            promote_uplift (float, optional): The minimum uplift required to promote. Defaults to 0.03.
+            max_cost_delta (float, optional): The maximum cost delta allowed to promote. Defaults to 0.10.
+            min_n (int, optional): The minimum number of samples required to summarize. Defaults to 10.
+        """
         self.promote_uplift = promote_uplift
         self.max_cost_delta = max_cost_delta
         self.min_n = min_n
         self._data = defaultdict(list)  # key=(exp_name, arm) -> [ABResult]
 
     def record(self, exp:str, arm:str, score:float, cost:float, latency_ms:float):
+        """
+        Records an experiment result.
+
+        Args:
+            exp (str): The name of the experiment.
+            arm (str): The arm of the experiment.
+            score (float): The score of the result.
+            cost (float): The cost of the result.
+            latency_ms (float): The latency of the result in milliseconds.
+        """
         self._data[(exp, arm)].append(ABResult(arm, score, cost, latency_ms))
 
     def summarize(self, exp:str, a_arm:str, b_arm:str) -> Dict:
+        """
+        Summarizes an experiment.
+
+        Args:
+            exp (str): The name of the experiment.
+            a_arm (str): The name of the first arm.
+            b_arm (str): The name of the second arm.
+
+        Returns:
+            Dict: A dictionary containing the summary of the experiment.
+        """
         a = self._data[(exp, a_arm)]
         b = self._data[(exp, b_arm)]
         a_scores = [r.score for r in a]; b_scores = [r.score for r in b]

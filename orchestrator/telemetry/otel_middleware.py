@@ -6,7 +6,18 @@ import time
 tracer = trace.get_tracer(__name__)
 
 class OpenTelemetryMiddleware(BaseHTTPMiddleware):
+    """A middleware for adding OpenTelemetry tracing to requests."""
     async def dispatch(self, request, call_next):
+        """
+        Dispatches a request and adds OpenTelemetry tracing.
+
+        Args:
+            request: The request to dispatch.
+            call_next: The next middleware or endpoint to call.
+
+        Returns:
+            The response from the next middleware or endpoint.
+        """
         with tracer.start_as_current_span(f"HTTP {request.method} {request.url.path}") as span:
             start = time.time()
             try:
