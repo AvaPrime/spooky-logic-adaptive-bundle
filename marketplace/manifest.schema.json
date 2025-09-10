@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Spooky Playbook Manifest",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "version",
+    "author",
+    "created_at",
+    "sha256",
+    "signature",
+    "playbook_url"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "author": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "sha256": {
+      "type": "string"
+    },
+    "signature": {
+      "type": "string"
+    },
+    "public_key_id": {
+      "type": "string"
+    },
+    "playbook_url": {
+      "type": "string"
+    },
+    "tenant": {
+      "type": "string"
+    }
+  }
+}

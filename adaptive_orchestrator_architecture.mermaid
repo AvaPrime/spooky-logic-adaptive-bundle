@@ -1,0 +1,70 @@
+graph TB
+    %% User Interface Layer
+    User[👤 User Request] --> Navigator[🧭 Navigator<br/>GPT-4o/Claude 3.5]
+    
+    %% Core Agent Crew
+    Navigator --> |Task Decomposition| TaskRouter{🎯 Task Router}
+    
+    TaskRouter --> |Retrieval Tasks| Retriever[🔍 Retriever<br/>MHE + pgvector]
+    TaskRouter --> |Code Tasks| Coder[💻 Coder<br/>DeepSeek/GPT-4o-mini]
+    TaskRouter --> |Math Tasks| MathAgent[📊 Math Agent<br/>SymPy + Math LLM]
+    TaskRouter --> |Creative Tasks| Artisan[🎨 Artisan<br/>Creative LLM]
+    
+    %% Validation & Memory
+    Retriever --> Validator[🔍 Validator/Critic<br/>Adversarial LLM]
+    Coder --> Validator
+    MathAgent --> Validator
+    Artisan --> Validator
+    
+    Validator --> MemoryKeeper[🧠 Memory Keeper<br/>MHE Scribe API]
+    
+    %% Adaptive Meta-Conductor Layer
+    MemoryKeeper --> |Performance Logs| MetaConductor[🎼 Meta-Conductor<br/>Adaptive Orchestrator]
+    
+    MetaConductor --> |Rules Engine| PolicyEngine[📋 Policy Engine<br/>OPA/YAML Rules]
+    MetaConductor --> |Performance Analysis| FeedbackLoop[🔄 Feedback Loop]
+    MetaConductor --> |A/B Testing| ExperimentModule[🧪 Experiment Module]
+    MetaConductor --> |External Integration| AbsorptionAPI[🌐 Absorption API]
+    
+    %% Feedback and Adaptation
+    FeedbackLoop --> |Accuracy Metrics| MetricsDB[(📈 Metrics DB<br/>Cost, Latency, Success)]
+    FeedbackLoop --> |Failure Patterns| FailureAnalysis[❌ Failure Analysis]
+    
+    ExperimentModule --> |Strategy Testing| StrategyA[Strategy A:<br/>Chain-of-Thought]
+    ExperimentModule --> |Strategy Testing| StrategyB[Strategy B:<br/>Debate Mode]
+    
+    %% External Absorption
+    AbsorptionAPI --> |Plugin Discovery| ExternalAPI1[🔌 Perplexity API]
+    AbsorptionAPI --> |Model Integration| ExternalAPI2[🔌 Ollama Models]
+    AbsorptionAPI --> |Tool Discovery| ExternalAPI3[🔌 Wolfram Alpha]
+    
+    %% Policy Enforcement
+    PolicyEngine --> |Agent Swapping| AgentSwap[🔄 Dynamic Agent<br/>Replacement]
+    PolicyEngine --> |Workflow Changes| WorkflowAdapt[⚙️ Workflow<br/>Adaptation]
+    PolicyEngine --> |Budget Controls| CostControls[💰 Cost Controls]
+    
+    %% Infrastructure Layer
+    MemoryKeeper -.-> MHE[(🗄️ Memory Harvester<br/>Engine)]
+    TaskRouter -.-> Temporal[⏰ Temporal<br/>Workflow Engine]
+    MetricsDB -.-> PostgreSQL[(🐘 PostgreSQL)]
+    Retriever -.-> PGVector[(🔍 pgvector)]
+    
+    %% Adaptation Arrows
+    AgentSwap -.-> |Replace Failing| Coder
+    AgentSwap -.-> |Replace Failing| MathAgent
+    WorkflowAdapt -.-> |Modify Routing| TaskRouter
+    
+    %% Self-Improvement Loop
+    MetaConductor --> |Policy Updates| PolicyEngine
+    FailureAnalysis --> |Learning| MetaConductor
+    
+    %% Styling
+    classDef agentClass fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+    classDef metaClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef infraClass fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef adaptiveClass fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    
+    class Navigator,Retriever,Coder,MathAgent,Artisan,Validator agentClass
+    class MetaConductor,PolicyEngine,FeedbackLoop,ExperimentModule metaClass
+    class MHE,Temporal,PostgreSQL,PGVector infraClass
+    class AgentSwap,WorkflowAdapt,AbsorptionAPI adaptiveClass

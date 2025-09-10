@@ -1,0 +1,67 @@
+{
+  "title": "Spooky Logic \u2013 Overview",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Tasks (5m)",
+      "targets": [
+        {
+          "expr": "sum(increase(spooky_submissions_total[5m]))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Accuracy p50",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.5, sum(rate(spooky_task_accuracy_bucket[5m])) by (le))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency p90 (ms)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.9, sum(rate(spooky_latency_ms_bucket[5m])) by (le))"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Debate Wins (variant)",
+      "targets": [
+        {
+          "expr": "sum(increase(spooky_debate_wins_total[5m]))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      }
+    }
+  ],
+  "schemaVersion": 37,
+  "version": 1
+}

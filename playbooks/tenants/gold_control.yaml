@@ -1,0 +1,8 @@
+name: gold_control
+tenant: gold
+steps:
+  - route: navigator
+  - retrieve: mhe.hybrid_search
+  - solve: coder
+  - validate: validator
+  - decide: accept_if(conf>=0.8)

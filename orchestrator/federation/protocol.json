@@ -1,0 +1,33 @@
+{
+  "version": "0.1",
+  "message_types": {
+    "result_sample": {
+      "required": [
+        "cluster_id",
+        "tenant",
+        "arm",
+        "score",
+        "cost",
+        "latency_ms",
+        "ts"
+      ]
+    },
+    "aggregate_request": {
+      "required": [
+        "tenant",
+        "arm_a",
+        "arm_b"
+      ]
+    },
+    "aggregate_response": {
+      "required": [
+        "ready",
+        "uplift",
+        "cost_delta",
+        "latency_delta",
+        "n_a",
+        "n_b"
+      ]
+    }
+  }
+}

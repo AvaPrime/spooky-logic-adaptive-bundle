@@ -1,0 +1,10 @@
+roles:
+  navigator:
+    candidates: [gpt4o, claude35]
+    fallback: gpt4o_mini
+  coder:
+    candidates: [deepseek_coder, gpt4o_mini]
+  validator:
+    candidates: [claude35_mini]
+  math:
+    tools: [sympy]

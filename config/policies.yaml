@@ -1,0 +1,30 @@
+policies:
+  - name: math_agent_performance_degradation
+    trigger: performance_degradation
+    conditions:
+      - metric: agents.math.accuracy
+        operator: "<"
+        threshold: 0.85
+        time_window: "2h"
+        min_samples: 5
+    action: swap_agent
+    parameters:
+      agent_type: math
+      replacement: best_available
+    priority: 8
+    cooldown_minutes: 60
+    confidence_threshold: 0.5
+  - name: latency_spike_response
+    trigger: latency_spike
+    conditions:
+      - metric: avg_latency
+        operator: ">"
+        threshold: 3000
+        time_window: "30m"
+        min_samples: 5
+    action: scale_resources
+    parameters:
+      scale_factor: 1.5
+    priority: 6
+    cooldown_minutes: 30
+    confidence_threshold: 0.5

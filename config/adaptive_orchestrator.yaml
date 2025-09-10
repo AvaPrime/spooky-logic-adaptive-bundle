@@ -1,0 +1,30 @@
+adaptive_orchestrator:
+  core:
+    orchestrator_id: codessian_primary
+    adaptation_enabled: true
+    learning_rate: 0.2
+    confidence_threshold: 0.75
+  policy_engine:
+    config_path: "config/policies.yaml"
+    evaluation_interval_seconds: 60
+    max_concurrent_adaptations: 2
+    learning_enabled: true
+    rule_adaptation_enabled: true
+  absorption_api:
+    discovery_enabled: false
+    discovery_interval_hours: 24
+    testing_interval_hours: 6
+    integration_threshold: 0.15
+    trial_period_days: 7
+    max_parallel_tests: 2
+  codessian_integration:
+    memory_harvester_engine:
+      endpoint: "http://mhe:8080"
+      store_adaptations: true
+      store_test_results: true
+    temporal_workflows:
+      workflow_queue: "adaptive_orchestration"
+      activity_timeout_seconds: 300
+    metrics_collection:
+      prometheus_endpoint: "http://prometheus:9090"
+      custom_metrics_enabled: true

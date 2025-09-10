@@ -1,0 +1,37 @@
+{
+  "title": "Spooky Logic \u2013 Event Bus",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Events In (5m)",
+      "targets": [
+        {
+          "expr": "sum(increase(spooky_events_in_total[5m]))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Processing Lag (s)",
+      "targets": [
+        {
+          "expr": "avg(spooky_event_processing_lag_seconds)"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 8
+      }
+    }
+  ],
+  "schemaVersion": 37,
+  "version": 1
+}

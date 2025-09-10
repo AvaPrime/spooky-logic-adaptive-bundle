@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: spooky-logic
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  - host: spooky.yourdomain.tld
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: spooky-logic
+            port:
+              number: 80

@@ -1,0 +1,15 @@
+name: variant_debate_tools
+steps:
+  - route: navigator
+  - retrieve: mhe.hybrid_search
+  - parallel:
+      - solve_a: coder
+      - solve_b: coder_alt
+  - debate:
+      mode: cross-exam
+      rounds: 2
+  - tool_calls:
+      - math: sympy
+      - tests: pytest
+  - validate: validator
+  - decide: select_best_by(score=accuracy-0.1*cost-0.05*latency)

@@ -1,0 +1,26 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "subject": [
+    {
+      "name": "spooky-cap-example",
+      "digest": {
+        "sha256": "<sha256>"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "predicate": {
+    "builder": {
+      "id": "spooky-builder://codessian"
+    },
+    "buildType": "spooky/capability",
+    "materials": [
+      {
+        "uri": "git+https://example.com/repo#v1.0.0",
+        "digest": {
+          "sha1": "..."
+        }
+      }
+    ]
+  }
+}

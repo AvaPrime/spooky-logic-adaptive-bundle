@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spooky-logic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spooky-logic
+  template:
+    metadata:
+      labels:
+        app: spooky-logic
+    spec:
+      containers:
+      - name: api
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: {{ .Values.service.port }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}

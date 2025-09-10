@@ -1,0 +1,80 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: spooky
+      POSTGRES_PASSWORD: spooky
+      POSTGRES_DB: spooky
+    ports: [ "5432:5432" ]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spooky"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  temporal:
+    image: temporalio/auto-setup:1.23.0
+    environment:
+      - DB=postgresql
+      - POSTGRES_USER=spooky
+      - POSTGRES_PWD=spooky
+      - POSTGRES_SEEDS=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports: [ "7233:7233" ]
+
+  opa:
+    image: openpolicyagent/opa:latest
+    command: ["run", "--server", "--set=decision_logs.console=true", "/policies"]
+    volumes:
+      - ./policies:/policies:ro
+    ports: [ "8181:8181" ]
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./telemetry/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports: [ "9090:9090" ]
+
+  grafana:
+    image: grafana/grafana:9.5.15
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    volumes:
+      - ./telemetry/grafana/provisioning:/etc/grafana/provisioning
+    ports: [ "3000:3000" ]
+
+  api:
+    build:
+      context: ./docker/api
+    env_file: .env
+    volumes:
+      - ./api:/app/api
+      - ./orchestrator:/app/orchestrator
+      - ./playbooks:/app/playbooks
+      - ./policies:/app/policies
+    depends_on:
+      temporal:
+        condition: service_started
+      opa:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    ports: [ "8080:8080" ]
+
+  worker:
+    build:
+      context: ./docker/worker
+    env_file: .env
+    volumes:
+      - ./orchestrator:/app/orchestrator
+      - ./playbooks:/app/playbooks
+      - ./policies:/app/policies
+    depends_on:
+      temporal:
+        condition: service_started
+      postgres:
+        condition: service_healthy

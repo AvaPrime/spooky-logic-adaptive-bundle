@@ -1,0 +1,7 @@
+roles:
+  navigator:
+    gpt4o: 0.5
+    claude35: 0.5
+  coder:
+    deepseek_coder: 0.6
+    gpt4o_mini: 0.4

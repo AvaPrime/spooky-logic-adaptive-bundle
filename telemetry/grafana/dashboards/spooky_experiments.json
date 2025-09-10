@@ -1,0 +1,40 @@
+{
+  "title": "Spooky Logic \u2013 Experiments",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Debate Wins (5m)",
+      "targets": [
+        {
+          "expr": "sum(increase(spooky_debate_wins_total[5m]))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "A vs B Score p50",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.5, sum(rate(spooky_task_accuracy_bucket{playbook='control_single_pass'}[5m])) by (le))"
+        },
+        {
+          "expr": "histogram_quantile(0.5, sum(rate(spooky_task_accuracy_bucket{playbook='variant_debate_tools'}[5m])) by (le))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 8
+      }
+    }
+  ],
+  "schemaVersion": 37,
+  "version": 1
+}

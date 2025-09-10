@@ -1,0 +1,7 @@
+name: control_single_pass
+steps:
+  - route: navigator
+  - retrieve: mhe.hybrid_search
+  - solve: primary_agent
+  - validate: validator
+  - decide: accept_if(conf>=0.7)

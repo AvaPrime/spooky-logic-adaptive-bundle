@@ -1,0 +1,37 @@
+{
+  "title": "Spooky Logic \u2013 Tenant Performance",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Accuracy by Tenant",
+      "targets": [
+        {
+          "expr": "avg(spooky_task_accuracy_sum) by (tenant) / avg(spooky_task_accuracy_count) by (tenant)"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Cost by Tenant",
+      "targets": [
+        {
+          "expr": "avg(spooky_cost_usd_sum) by (tenant)"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 8
+      }
+    }
+  ],
+  "schemaVersion": 37,
+  "version": 1
+}

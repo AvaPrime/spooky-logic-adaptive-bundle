@@ -1,0 +1,52 @@
+{
+  "title": "Spooky Logic Overview",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Submissions",
+      "targets": [
+        {
+          "expr": "sum(increase(spooky_submissions_total[5m]))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "graph",
+      "title": "Accuracy",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.5, sum(rate(spooky_task_accuracy_bucket[5m])) by (le))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "graph",
+      "title": "Latency (ms)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.9, sum(rate(spooky_latency_ms_bucket[5m])) by (le))"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      }
+    }
+  ],
+  "schemaVersion": 37,
+  "version": 1
+}

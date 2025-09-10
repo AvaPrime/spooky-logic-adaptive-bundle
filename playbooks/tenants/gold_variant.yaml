@@ -1,0 +1,12 @@
+name: gold_variant
+tenant: gold
+steps:
+  - route: navigator
+  - retrieve: mhe.hybrid_search
+  - parallel:
+      - solve_a: coder
+      - solve_b: coder_alt
+  - debate:
+      rounds: 3
+  - validate: validator
+  - decide: select_best_by(score=accuracy-0.05*cost)
