@@ -32,6 +32,8 @@ adaptive_orchestrator:
 llm_providers:
   default_provider: openai
   ollama_base_url: "http://ollama:11434"
+  deepseek_provider_config:
+    base_url: "https://api.deepseek.com"
   provider_map:
     navigator:
       provider: openai
@@ -42,6 +44,9 @@ llm_providers:
     validator:
       provider: ollama
       model: llama3
+    deepseek_agent:
+      provider: deepseek
+      model: deepseek-chat
     default_agent:
       provider: openai
       model: gpt-4o-mini

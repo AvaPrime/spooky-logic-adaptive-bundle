@@ -16,14 +16,21 @@ class LLMClient:
         self.provider_map = self.config.get('provider_map', {})
         self.default_provider_config = self.provider_map.get('default_agent', {})
 
+        deepseek_config = self.config.get('deepseek_provider_config', {})
         self.clients = {
             'openai': AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY")),
             'anthropic': AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY")),
-            'ollama': AsyncClient(host=os.getenv("OLLAMA_BASE_URL", self.config.get('ollama_base_url')))
+            'ollama': AsyncClient(host=os.getenv("OLLAMA_BASE_URL", self.config.get('ollama_base_url'))),
+            'deepseek': AsyncOpenAI(
+                api_key=os.getenv("DEEPSEEK_API_KEY"),
+                base_url=deepseek_config.get('base_url')
+            )
         }
 
-    async def _call_openai(self, model: str, prompt: str) -> dict:
-        response = await self.clients['openai'].chat.completions.create(
+    async def _call_openai_compatible(self, client_name: str, model: str, prompt: str) -> dict:
+        """Generic method for OpenAI-compatible APIs."""
+        client = self.clients[client_name]
+        response = await client.chat.completions.create(
             model=model,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -54,7 +61,9 @@ class LLMClient:
         model = provider_config.get('model')
 
         if provider == 'openai':
-            return await self._call_openai(model, prompt)
+            return await self._call_openai_compatible('openai', model, prompt)
+        elif provider == 'deepseek':
+            return await self._call_openai_compatible('deepseek', model, prompt)
         elif provider == 'anthropic':
             return await self._call_anthropic(model, prompt)
         elif provider == 'ollama':

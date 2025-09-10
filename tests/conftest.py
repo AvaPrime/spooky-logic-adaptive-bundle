@@ -13,6 +13,7 @@ def pytest_configure(config):
     mock_getenv.side_effect = lambda key, default=None: {
         "OPENAI_API_KEY": "fake-openai-key",
         "ANTHROPIC_API_KEY": "fake-anthropic-key",
+        "DEEPSEEK_API_KEY": "fake-deepseek-key",
         "OLLAMA_BASE_URL": "http://fake-ollama:11434"
     }.get(key, default)
 

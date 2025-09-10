@@ -11,10 +11,14 @@ def mock_config():
     return {
         'llm_providers': {
             'ollama_base_url': 'http://mock-ollama:11434',
+            'deepseek_provider_config': {
+                'base_url': 'https://api.deepseek.com'
+            },
             'provider_map': {
                 'navigator': {'provider': 'openai', 'model': 'gpt-4o'},
                 'primary_agent': {'provider': 'anthropic', 'model': 'claude-3.5-sonnet'},
                 'validator': {'provider': 'ollama', 'model': 'llama3'},
+                'deepseek_agent': {'provider': 'deepseek', 'model': 'deepseek-chat'},
                 'unsupported': {'provider': 'unsupported_provider', 'model': 'model-x'},
                 'default_agent': {'provider': 'openai', 'model': 'gpt-4o-mini'}
             }
@@ -30,21 +34,32 @@ def mock_llm_client(mock_config):
 
         client = LLMClient()
         # Mock the actual client calls
-        client._call_openai = unittest.mock.AsyncMock(return_value={"text": "openai response", "confidence": None})
+        client._call_openai_compatible = unittest.mock.AsyncMock(return_value={"text": "openai_compatible response", "confidence": None})
         client._call_anthropic = unittest.mock.AsyncMock(return_value={"text": "anthropic response", "confidence": None})
         client._call_ollama = unittest.mock.AsyncMock(return_value={"text": "ollama response", "confidence": None})
         return client
 
 async def test_call_openai_provider(mock_llm_client):
-    """Tests that a role mapped to openai calls the openai method."""
+    """Tests that a role mapped to openai calls the openai_compatible method."""
     role = 'navigator'
     prompt = 'test prompt'
     result = await mock_llm_client.call_llm(role, prompt)
 
-    mock_llm_client._call_openai.assert_called_once_with('gpt-4o', prompt)
+    mock_llm_client._call_openai_compatible.assert_called_once_with('openai', 'gpt-4o', prompt)
     mock_llm_client._call_anthropic.assert_not_called()
     mock_llm_client._call_ollama.assert_not_called()
-    assert result["text"] == "openai response"
+    assert result["text"] == "openai_compatible response"
+
+async def test_call_deepseek_provider(mock_llm_client):
+    """Tests that a role mapped to deepseek calls the openai_compatible method."""
+    role = 'deepseek_agent'
+    prompt = 'test prompt'
+    result = await mock_llm_client.call_llm(role, prompt)
+
+    mock_llm_client._call_openai_compatible.assert_called_once_with('deepseek', 'deepseek-chat', prompt)
+    mock_llm_client._call_anthropic.assert_not_called()
+    mock_llm_client._call_ollama.assert_not_called()
+    assert result["text"] == "openai_compatible response"
 
 async def test_call_anthropic_provider(mock_llm_client):
     """Tests that a role mapped to anthropic calls the anthropic method."""
@@ -53,7 +68,7 @@ async def test_call_anthropic_provider(mock_llm_client):
     result = await mock_llm_client.call_llm(role, prompt)
 
     mock_llm_client._call_anthropic.assert_called_once_with('claude-3.5-sonnet', prompt)
-    mock_llm_client._call_openai.assert_not_called()
+    mock_llm_client._call_openai_compatible.assert_not_called()
     mock_llm_client._call_ollama.assert_not_called()
     assert result["text"] == "anthropic response"
 
@@ -64,7 +79,7 @@ async def test_call_ollama_provider(mock_llm_client):
     result = await mock_llm_client.call_llm(role, prompt)
 
     mock_llm_client._call_ollama.assert_called_once_with('llama3', prompt)
-    mock_llm_client._call_openai.assert_not_called()
+    mock_llm_client._call_openai_compatible.assert_not_called()
     mock_llm_client._call_anthropic.assert_not_called()
     assert result["text"] == "ollama response"
 
@@ -74,10 +89,10 @@ async def test_fallback_to_default_provider(mock_llm_client):
     prompt = 'test prompt'
     result = await mock_llm_client.call_llm(role, prompt)
 
-    mock_llm_client._call_openai.assert_called_once_with('gpt-4o-mini', prompt)
+    mock_llm_client._call_openai_compatible.assert_called_once_with('openai', 'gpt-4o-mini', prompt)
     mock_llm_client._call_anthropic.assert_not_called()
     mock_llm_client._call_ollama.assert_not_called()
-    assert result["text"] == "openai response"
+    assert result["text"] == "openai_compatible response"
 
 async def test_unsupported_provider_raises_error(mock_llm_client):
     """Tests that a configured but unsupported provider raises NotImplementedError."""
