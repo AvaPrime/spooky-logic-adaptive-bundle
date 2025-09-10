@@ -185,3 +185,20 @@ class ProposalExecutionResponse(BaseAPIModel):
     execution_id: Optional[str] = Field(None, description="Execution tracking ID")
     result: Optional[Dict[str, Any]] = Field(None, description="Execution result")
     errors: Optional[List[str]] = Field(None, description="Execution errors if any")
+
+
+class GovernanceBoardResponse(BaseAPIModel):
+    """Response model for governance board overview."""
+    proposals: List[Dict[str, Any]] = Field(..., description="List of all proposals")
+    total_proposals: int = Field(..., ge=0, description="Total number of proposals")
+    active_proposals: int = Field(..., ge=0, description="Number of active proposals")
+    completed_proposals: int = Field(..., ge=0, description="Number of completed proposals")
+
+
+class ProposalDetailsResponse(BaseAPIModel):
+    """Response model for detailed proposal information."""
+    proposal: Dict[str, Any] = Field(..., description="Detailed proposal information")
+    votes: List[Dict[str, Any]] = Field(default_factory=list, description="List of votes on this proposal")
+    vote_summary: Dict[str, int] = Field(default_factory=dict, description="Vote count summary")
+    can_vote: bool = Field(True, description="Whether current user can vote")
+    can_execute: bool = Field(False, description="Whether proposal can be executed")

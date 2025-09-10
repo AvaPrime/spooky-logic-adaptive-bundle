@@ -105,10 +105,10 @@ async def install_package(request: MarketplaceInstallRequest):
              install_path=install_path,
              installed_at=installation_record["installed_at"]
          )
-     except HTTPException:
-         raise
-     except Exception as e:
-         raise HTTPException(status_code=500, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/search", response_model=MarketplaceSearchResponse)
 async def search_packages(request: MarketplaceSearchRequest):

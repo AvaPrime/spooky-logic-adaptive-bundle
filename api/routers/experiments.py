@@ -70,7 +70,7 @@ async def record_experiment(record: ExperimentRecordRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/results/{experiment_name}", response_model=ExperimentResultsResponse)
+@router.get("/results/{experiment_name}", response_model=ExperimentSummaryResponse)
 async def get_results(experiment_name: str):
     """Get results for a specific experiment"""
     try:
@@ -99,7 +99,7 @@ async def get_results(experiment_name: str):
             stats["variance"] = sum((x - stats["mean"]) ** 2 for x in outcomes) / len(outcomes) if len(outcomes) > 1 else 0
             stats["std_dev"] = stats["variance"] ** 0.5
         
-        return ExperimentResultsResponse(
+        return ExperimentSummaryResponse(
             experiment_name=experiment_name,
             status=experiment["status"],
             total_participants=len(experiment["results"]),
@@ -114,8 +114,8 @@ async def get_results(experiment_name: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/analyze", response_model=ExperimentAnalysisResponse)
-async def analyze_experiment(analysis: ExperimentAnalysisRequest):
+@router.post("/analyze", response_model=ExperimentConfigResponse)
+async def analyze_experiment(analysis: ExperimentConfigRequest):
     """Perform statistical analysis on experiment results"""
     try:
         experiment = None
@@ -165,7 +165,7 @@ async def analyze_experiment(analysis: ExperimentAnalysisRequest):
                         "effect_size": abs(mean1 - mean2)
                     }
         
-        return ExperimentAnalysisResponse(
+        return ExperimentConfigResponse(
             experiment_name=analysis.experiment_name,
             analysis_type=analysis.analysis_type,
             significance_level=analysis.significance_level,

@@ -249,3 +249,13 @@ class ExperimentConfigRequest(BaseAPIModel):
                     raise ValueError(f'Traffic allocation for {arm} must be positive')
         
         return v
+
+
+class ExperimentConfigResponse(BaseAPIModel):
+    """Response model for experiment configuration."""
+    experiment: str = Field(..., description="Experiment identifier")
+    status: str = Field(..., description="Configuration status")
+    config_id: Optional[str] = Field(None, description="Configuration identifier")
+    message: str = Field(..., description="Status message")
+    arms_configured: List[str] = Field(default_factory=list, description="Successfully configured arms")
+    created_at: datetime = Field(default_factory=datetime.utcnow, description="Configuration timestamp")

@@ -350,3 +350,30 @@ class MarketplaceUninstallResponse(BaseAPIModel):
     )
     data_removed: bool = Field(default=False, description="Whether data was removed")
     uninstall_time: datetime = Field(default_factory=datetime.utcnow)
+
+
+class MarketplaceListResponse(BaseAPIModel):
+    """Response model for marketplace package listing."""
+    packages: List[Dict[str, Any]] = Field(..., description="List of available packages")
+    total_count: int = Field(..., ge=0, description="Total number of packages")
+    categories: List[str] = Field(default_factory=list, description="Available categories")
+    packages_by_category: Dict[str, List[Dict[str, Any]]] = Field(
+        default_factory=dict,
+        description="Packages grouped by category"
+    )
+
+
+class MarketplaceStatusRequest(BaseAPIModel):
+    """Request model for marketplace status check."""
+    installation_id: str = Field(..., description="Installation ID to check")
+
+
+class MarketplaceStatusResponse(BaseAPIModel):
+    """Response model for marketplace status check."""
+    installation_id: str = Field(..., description="Installation ID")
+    status: InstallationStatus = Field(..., description="Current installation status")
+    progress: Optional[float] = Field(None, ge=0.0, le=100.0, description="Installation progress percentage")
+    message: Optional[str] = Field(None, description="Status message")
+    error: Optional[str] = Field(None, description="Error message if failed")
+    started_at: Optional[datetime] = Field(None, description="Installation start time")
+    completed_at: Optional[datetime] = Field(None, description="Installation completion time")

@@ -11,14 +11,13 @@ from routers import (
     capabilities, experiments, federation, governance, 
     marketplace, rollback, supplychain
 )
-from core.orchestrator import Orchestrator
-from core.llm_client import LLMClient
-from core.mhe_client import MHEClient
+# from orchestrator.clients.llm_client import LLMClient
+# from orchestrator.clients.mhe_client import MHEClient
 from models.orchestration import (
     OrchestrateRequest, OrchestrateResponse, AgentManifest, 
     AgentRegistrationResponse, PlaybookTrialRequest, PlaybookTrialResponse
 )
-from .models.base import ErrorResponse, SuccessResponse
+from models.base import ErrorResponse, SuccessResponse
 
 app = FastAPI(title="Spooky Logic API", version="0.1")
 
@@ -31,33 +30,33 @@ app.include_router(marketplace.router)
 app.include_router(rollback.router)
 app.include_router(supplychain.router)
 
-@app.post("/orchestrate", response_model=OrchestrateResponse)
-async def orchestrate(req: OrchestrateRequest):
-    """Main orchestration endpoint"""
-    try:
-        # Initialize orchestrator with request parameters
-        orchestrator = Orchestrator(
-            goal=req.goal,
-            budget=req.budget,
-            risk=req.risk,
-            capabilities=req.capabilities or {}
-        )
-        
-        # Execute orchestration
-        result = await orchestrator.execute()
-        
-        return OrchestrateResponse(
-            status="success",
-            result=result,
-            execution_id=orchestrator.execution_id,
-            goal=req.goal,
-            budget_used=result.get("budget_used", 0.0),
-            risk_level=req.risk,
-            capabilities_used=result.get("capabilities_used", []),
-            execution_time_ms=result.get("execution_time_ms", 0.0)
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# @app.post("/orchestrate", response_model=OrchestrateResponse)
+# async def orchestrate(req: OrchestrateRequest):
+#     """Main orchestration endpoint - TODO: Implement orchestrator integration"""
+#     try:
+#         # TODO: Initialize orchestrator with request parameters
+#         # orchestrator = Orchestrator(
+#         #     goal=req.goal,
+#         #     budget=req.budget,
+#         #     risk=req.risk,
+#         #     capabilities=req.capabilities or {}
+#         # )
+#         
+#         # TODO: Execute orchestration
+#         # result = await orchestrator.execute()
+#         
+#         return OrchestrateResponse(
+#             status="success",
+#             result={"message": "Orchestration endpoint not yet implemented"},
+#             execution_id="placeholder-id",
+#             goal=req.goal,
+#             budget_used=0.0,
+#             risk_level=req.risk,
+#             capabilities_used=[],
+#             execution_time_ms=0.0
+#         )
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/healthz")
 def healthz():

@@ -515,3 +515,105 @@ class SupplyChainReportResponse(BaseAPIModel):
         None,
         description="Report summary statistics"
     )
+
+
+class SupplyChainValidateRequest(BaseAPIModel):
+    """Request model for supply chain validation."""
+    project_id: str = Field(..., description="Project ID to validate")
+    component_path: Optional[str] = Field(
+        None,
+        description="Specific component path to validate"
+    )
+    validation_type: str = Field(
+        default="full",
+        pattern=r"^(full|security|license|compliance|dependencies)$",
+        description="Type of validation to perform"
+    )
+    include_transitive: bool = Field(
+        default=True,
+        description="Include transitive dependencies"
+    )
+    policy_profile: Optional[str] = Field(
+        None,
+        description="Policy profile to use for validation"
+    )
+    fail_on_critical: bool = Field(
+        default=True,
+        description="Fail validation on critical issues"
+    )
+
+
+class SupplyChainValidateResponse(BaseAPIModel):
+    """Response model for supply chain validation."""
+    validation_id: str = Field(..., description="Validation session ID")
+    project_id: str = Field(..., description="Validated project ID")
+    validation_type: str = Field(..., description="Type of validation performed")
+    status: str = Field(..., description="Validation status")
+    passed: bool = Field(..., description="Whether validation passed")
+    issues_found: int = Field(..., ge=0, description="Number of issues found")
+    critical_issues: int = Field(..., ge=0, description="Number of critical issues")
+    high_issues: int = Field(..., ge=0, description="Number of high severity issues")
+    medium_issues: int = Field(..., ge=0, description="Number of medium severity issues")
+    low_issues: int = Field(..., ge=0, description="Number of low severity issues")
+    validated_at: datetime = Field(default_factory=datetime.utcnow)
+    validation_duration: Optional[float] = Field(
+        None,
+        description="Validation duration in seconds"
+    )
+    report_url: Optional[HttpUrl] = Field(
+        None,
+        description="URL to detailed validation report"
+    )
+    recommendations: Optional[List[str]] = Field(
+        default_factory=list,
+        description="Validation recommendations"
+    )
+
+
+class SupplyChainAuditRequest(BaseAPIModel):
+    """Request model for supply chain audit."""
+    project_id: str = Field(..., description="Project ID to audit")
+    audit_scope: str = Field(
+        default="full",
+        pattern=r"^(full|security|compliance|licensing|dependencies)$",
+        description="Scope of the audit"
+    )
+    include_historical: bool = Field(
+        default=False,
+        description="Include historical audit data"
+    )
+    compliance_frameworks: Optional[List[str]] = Field(
+        default_factory=list,
+        description="Compliance frameworks to check against"
+    )
+    audit_depth: str = Field(
+        default="standard",
+        pattern=r"^(shallow|standard|deep)$",
+        description="Depth of audit analysis"
+    )
+
+
+class SupplyChainAuditResponse(BaseAPIModel):
+    """Response model for supply chain audit."""
+    audit_id: str = Field(..., description="Audit session ID")
+    project_id: str = Field(..., description="Audited project ID")
+    audit_scope: str = Field(..., description="Scope of audit performed")
+    status: str = Field(..., description="Audit status")
+    compliance_score: float = Field(..., ge=0.0, le=100.0, description="Overall compliance score")
+    security_score: float = Field(..., ge=0.0, le=100.0, description="Security score")
+    license_compliance: float = Field(..., ge=0.0, le=100.0, description="License compliance score")
+    findings_count: int = Field(..., ge=0, description="Total number of findings")
+    critical_findings: int = Field(..., ge=0, description="Critical findings count")
+    audited_at: datetime = Field(default_factory=datetime.utcnow)
+    audit_duration: Optional[float] = Field(
+        None,
+        description="Audit duration in seconds"
+    )
+    report_url: Optional[HttpUrl] = Field(
+        None,
+        description="URL to detailed audit report"
+    )
+    next_audit_recommended: Optional[datetime] = Field(
+        None,
+        description="Recommended next audit date"
+    )

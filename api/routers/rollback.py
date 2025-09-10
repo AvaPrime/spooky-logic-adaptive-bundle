@@ -1,8 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from models.rollback import (
-    RollbackStartRequest, RollbackStartResponse,
+    AutoRollbackStartRequest as RollbackStartRequest, 
+    AutoRollbackStartResponse as RollbackStartResponse,
     RollbackStatusRequest, RollbackStatusResponse,
-    RollbackExecuteRequest, RollbackExecuteResponse
+    RollbackControlRequest as RollbackExecuteRequest, 
+    RollbackControlResponse as RollbackExecuteResponse
 )
 from models.base import ErrorResponse
 from datetime import datetime
