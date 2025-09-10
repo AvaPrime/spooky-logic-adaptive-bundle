@@ -34,7 +34,7 @@ async def run_playbook(name: str, goal: str, budget: float, risk: int) -> dict:
                 f"Solve with context: {step_context.get('retrieved_context', 'No context')}"
             )
             step_context['solution'] = solution.get('text')
-            step_context['solution_confidence'] = solution.get('confidence', 0)
+            step_context['solution_confidence'] = solution.get('confidence') or 0.0
 
         elif action == 'validate':
             # Example: validate: validator
@@ -43,10 +43,10 @@ async def run_playbook(name: str, goal: str, budget: float, risk: int) -> dict:
                 f"Critique: {step_context.get('solution', 'No solution provided')}"
             )
             step_context['critique'] = critique.get('text')
-            step_context['validator_confidence'] = critique.get('confidence', 0)
+            step_context['validator_confidence'] = critique.get('confidence') or 0.0
 
             # Calculate a combined score
-            score = (step_context.get('solution_confidence', 0) + step_context.get('validator_confidence', 0)) / 2
+            score = (step_context.get('solution_confidence', 0.0) + step_context.get('validator_confidence', 0.0)) / 2
             step_context['score'] = score
 
         elif action == 'decide':
