@@ -28,3 +28,25 @@ adaptive_orchestrator:
     metrics_collection:
       prometheus_endpoint: "http://prometheus:9090"
       custom_metrics_enabled: true
+
+llm_providers:
+  default_provider: openai
+  ollama_base_url: "http://ollama:11434"
+  deepseek_provider_config:
+    base_url: "https://api.deepseek.com"
+  provider_map:
+    navigator:
+      provider: openai
+      model: gpt-4o
+    primary_agent:
+      provider: anthropic
+      model: claude-3.5-sonnet
+    validator:
+      provider: ollama
+      model: llama3
+    deepseek_agent:
+      provider: deepseek
+      model: deepseek-chat
+    default_agent:
+      provider: openai
+      model: gpt-4o-mini
