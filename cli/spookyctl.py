@@ -6,6 +6,7 @@ API = os.getenv("API_URL", "http://localhost:8080")
 
 @app.command()
 def list_playbooks():
+    """Lists all available playbooks."""
     # For now, just list local YAML files
     import pathlib, yaml
     pbdir = pathlib.Path("playbooks")
@@ -15,12 +16,29 @@ def list_playbooks():
 
 @app.command()
 def record_exp(experiment:str, arm:str, score:float, cost:float, latency:float, domain:str="general"):
+    """
+    Records the results of an experiment.
+
+    Args:
+        experiment (str): The name of the experiment.
+        arm (str): The arm of the experiment.
+        score (float): The score of the experiment.
+        cost (float): The cost of the experiment.
+        latency (float): The latency of the experiment in milliseconds.
+        domain (str, optional): The domain of the experiment. Defaults to "general".
+    """
     url = f"{API}/expstore/record"
     r = requests.post(url, json={"experiment":experiment,"arm":arm,"score":score,"cost":cost,"latency_ms":latency,"domain":domain})
     typer.echo(r.json())
 
 @app.command()
 def promote_check(experiment:str):
+    """
+    Checks the promotion status of an experiment.
+
+    Args:
+        experiment (str): The name of the experiment to check.
+    """
     url = f"{API}/experiments/summary?experiment={experiment}"
     r = requests.get(url)
     typer.echo(json.dumps(r.json(), indent=2))
