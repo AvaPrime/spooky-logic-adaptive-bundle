@@ -21,7 +21,6 @@ from models.base import ErrorResponse, SuccessResponse
 
 app = FastAPI(title="Spooky Logic API", version="0.1")
 
-<<<<<<< HEAD
 # Include routers
 app.include_router(capabilities.router)
 app.include_router(experiments.router)
@@ -92,7 +91,6 @@ async def orchestrate(req: OrchestrateReq):
     run_id = await start_orchestration(req.goal, playbook, req.budget_usd, req.risk)
     metrics.submissions.inc()
     return {"run_id": run_id, "playbook": playbook}
->>>>>>> 3c4a90cdb18cd40d228da1653114b2f244bb47fd
 
 @app.get("/healthz")
 def healthz():
