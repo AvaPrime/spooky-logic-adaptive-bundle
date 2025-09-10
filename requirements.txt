@@ -13,3 +13,4 @@ pytest-asyncio
 openai
 anthropic
 ollama
+aiohttp

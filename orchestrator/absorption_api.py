@@ -572,218 +572,6 @@ class CapabilityTester:
         baseline_accuracy = await self._calculate_accuracy(test_tasks, baseline_results)
         
         return {
-            'total_discovered': len(self.discovered_capabilities),
-            'status_breakdown': status_counts,
-            'integrated_count': len(self.integrated_capabilities),
-            'recent_discoveries': [
-                {
-                    'id': cap.id,
-                    'name': cap.name,
-                    'provider': cap.provider,
-                    'discovered_at': cap.discovered_at.isoformat(),
-                    'status': cap.status.value
-                }
-                for cap in sorted(
-                    self.discovered_capabilities.values(),
-                    key=lambda x: x.discovered_at,
-                    reverse=True
-                )[:10]
-            ],
-            'top_performing_capabilities': await self._get_top_performing_capabilities(),
-            'integration_pipeline': [
-                {
-                    'id': cap.id,
-                    'name': cap.name,
-                    'status': cap.status.value,
-                    'performance_summary': self._get_capability_performance_summary(cap.id)
-                }
-                for cap in self.discovered_capabilities.values()
-                if cap.status in [IntegrationStatus.TESTING, IntegrationStatus.TRIAL_PERIOD]
-            ]
-        }
-    
-    async def _get_top_performing_capabilities(self) -> List[Dict[str, Any]]:
-        """Get top performing capabilities across all categories"""
-        performance_scores = []
-        
-        for cap_id, capability in self.discovered_capabilities.items():
-            if cap_id in self.test_results:
-                tests = self.test_results[cap_id]
-                successful_tests = [t for t in tests if t.success]
-                
-                if successful_tests:
-                    avg_improvement = 0
-                    if any(t.baseline_comparison for t in successful_tests):
-                        improvements = [
-                            t.baseline_comparison.get('accuracy_improvement', 0)
-                            for t in successful_tests
-                            if t.baseline_comparison
-                        ]
-                        avg_improvement = sum(improvements) / len(improvements) if improvements else 0
-                    
-                    performance_scores.append({
-                        'capability': capability,
-                        'performance_score': avg_improvement,
-                        'success_rate': len(successful_tests) / len(tests)
-                    })
-        
-        # Sort by performance score
-        top_performers = sorted(
-            performance_scores,
-            key=lambda x: x['performance_score'],
-            reverse=True
-        )[:5]
-        
-        return [
-            {
-                'id': p['capability'].id,
-                'name': p['capability'].name,
-                'provider': p['capability'].provider,
-                'performance_score': p['performance_score'],
-                'success_rate': p['success_rate'],
-                'status': p['capability'].status.value
-            }
-            for p in top_performers
-        ]
-    
-    async def force_integrate_capability(self, capability_id: str) -> bool:
-        """Force integration of a capability (override normal flow)"""
-        if capability_id not in self.discovered_capabilities:
-            return False
-        
-        capability = self.discovered_capabilities[capability_id]
-        
-        try:
-            await self._integrate_capability(capability)
-            return capability.status == IntegrationStatus.INTEGRATED
-        except Exception as e:
-            self.logger.error(f"Failed to force integrate {capability_id}: {e}")
-            return False
-    
-    async def remove_capability(self, capability_id: str) -> bool:
-        """Remove an integrated capability"""
-        if capability_id not in self.integrated_capabilities:
-            return False
-        
-        try:
-            # Remove from orchestrator
-            success = await self.orchestrator.remove_external_capability(capability_id)
-            
-            if success:
-                # Update status
-                if capability_id in self.discovered_capabilities:
-                    self.discovered_capabilities[capability_id].status = IntegrationStatus.DEPRECATED
-                
-                # Remove from integrated set
-                del self.integrated_capabilities[capability_id]
-                
-                self.logger.info(f"Removed capability: {capability_id}")
-                return True
-            
-        except Exception as e:
-            self.logger.error(f"Error removing capability {capability_id}: {e}")
-        
-        return False
-    
-    async def close(self):
-        """Clean shutdown of the absorption API"""
-        await self.session.close()
-
-
-# Example usage and integration
-class MockOrchestrator:
-    """Mock orchestrator for testing the Absorption API"""
-    
-    def __init__(self):
-        self.agents = {}
-        self.external_capabilities = {}
-    
-    async def get_agent_for_task_types(self, task_types: List[str]):
-        """Get current agent handling these task types"""
-        # Mock baseline agent
-        class MockAgent:
-            async def execute(self, task):
-                # Simulate baseline performance
-                return {"output": "baseline response", "confidence": 0.7}
-        
-        return MockAgent()
-    
-    async def integrate_external_capability(self, config: Dict[str, Any]) -> bool:
-        """Integrate an external capability"""
-        capability_id = config['capability_id']
-        self.external_capabilities[capability_id] = config
-        
-        print(f"Integrated capability: {config['name']}")
-        print(f"Task types: {config['task_types']}")
-        print(f"Performance: {config.get('performance_metrics', {})}")
-        
-        return True
-    
-    async def remove_external_capability(self, capability_id: str) -> bool:
-        """Remove an external capability"""
-        if capability_id in self.external_capabilities:
-            del self.external_capabilities[capability_id]
-            return True
-        return False
-
-
-# Example configuration and startup
-async def example_absorption_system():
-    """Example of how to set up and run the Absorption API"""
-    
-    # Mock dependencies
-    class MockMetricsClient:
-        async def get_current_metrics(self):
-            return {
-                'accuracy': 0.85,
-                'cost_per_request': 0.02,
-                'avg_latency': 1200
-            }
-    
-    class MockPolicyEngine:
-        async def add_dynamic_policy(self, policy):
-            print(f"Added monitoring policy: {policy['name']}")
-            return True
-    
-    # Initialize system
-    orchestrator = MockOrchestrator()
-    metrics_client = MockMetricsClient()
-    policy_engine = MockPolicyEngine()
-    
-    absorption_api = AbsorptionAPI(orchestrator, metrics_client, policy_engine)
-    
-    # Example: Manually add a capability for testing
-    capability_config = {
-        'id': 'test_openai_gpt4',
-        'name': 'OpenAI GPT-4',
-        'type': 'llm_api',
-        'endpoint': 'https://api.openai.com/v1/chat/completions',
-        'api_key_required': True,
-        'task_types': ['generation', 'reasoning', 'analysis'],
-        'description': 'OpenAI GPT-4 language model',
-        'provider': 'openai',
-        'integration_method': 'api'
-    }
-    
-    capability_id = await absorption_api.manually_add_capability(capability_config)
-    print(f"Added capability for testing: {capability_id}")
-    
-    # Get system status
-    status = await absorption_api.get_absorption_status()
-    print("Absorption System Status:")
-    print(json.dumps(status, indent=2, default=str))
-    
-    # Start the absorption loop (in real usage, this runs continuously)
-    # await absorption_api.start_absorption_loop()
-    
-    # Clean up
-    await absorption_api.close()
-
-
-if __name__ == "__main__":
-    # Run the example
-    asyncio.run(example_absorption_system())
-
             'accuracy_improvement': new_accuracy - baseline_accuracy,
             'new_capability_accuracy': new_accuracy,
             'baseline_accuracy': baseline_accuracy
@@ -1239,3 +1027,214 @@ class AbsorptionAPI:
             )
         
         return {
+            'total_discovered': len(self.discovered_capabilities),
+            'status_breakdown': status_counts,
+            'integrated_count': len(self.integrated_capabilities),
+            'recent_discoveries': [
+                {
+                    'id': cap.id,
+                    'name': cap.name,
+                    'provider': cap.provider,
+                    'discovered_at': cap.discovered_at.isoformat(),
+                    'status': cap.status.value
+                }
+                for cap in sorted(
+                    self.discovered_capabilities.values(),
+                    key=lambda x: x.discovered_at,
+                    reverse=True
+                )[:10]
+            ],
+            'top_performing_capabilities': await self._get_top_performing_capabilities(),
+            'integration_pipeline': [
+                {
+                    'id': cap.id,
+                    'name': cap.name,
+                    'status': cap.status.value,
+                    'performance_summary': self._get_capability_performance_summary(cap.id)
+                }
+                for cap in self.discovered_capabilities.values()
+                if cap.status in [IntegrationStatus.TESTING, IntegrationStatus.TRIAL_PERIOD]
+            ]
+        }
+
+    async def _get_top_performing_capabilities(self) -> List[Dict[str, Any]]:
+        """Get top performing capabilities across all categories"""
+        performance_scores = []
+
+        for cap_id, capability in self.discovered_capabilities.items():
+            if cap_id in self.test_results:
+                tests = self.test_results[cap_id]
+                successful_tests = [t for t in tests if t.success]
+
+                if successful_tests:
+                    avg_improvement = 0
+                    if any(t.baseline_comparison for t in successful_tests):
+                        improvements = [
+                            t.baseline_comparison.get('accuracy_improvement', 0)
+                            for t in successful_tests
+                            if t.baseline_comparison
+                        ]
+                        avg_improvement = sum(improvements) / len(improvements) if improvements else 0
+
+                    performance_scores.append({
+                        'capability': capability,
+                        'performance_score': avg_improvement,
+                        'success_rate': len(successful_tests) / len(tests)
+                    })
+
+        # Sort by performance score
+        top_performers = sorted(
+            performance_scores,
+            key=lambda x: x['performance_score'],
+            reverse=True
+        )[:5]
+
+        return [
+            {
+                'id': p['capability'].id,
+                'name': p['capability'].name,
+                'provider': p['capability'].provider,
+                'performance_score': p['performance_score'],
+                'success_rate': p['success_rate'],
+                'status': p['capability'].status.value
+            }
+            for p in top_performers
+        ]
+
+    async def force_integrate_capability(self, capability_id: str) -> bool:
+        """Force integration of a capability (override normal flow)"""
+        if capability_id not in self.discovered_capabilities:
+            return False
+
+        capability = self.discovered_capabilities[capability_id]
+
+        try:
+            await self._integrate_capability(capability)
+            return capability.status == IntegrationStatus.INTEGRATED
+        except Exception as e:
+            self.logger.error(f"Failed to force integrate {capability_id}: {e}")
+            return False
+
+    async def remove_capability(self, capability_id: str) -> bool:
+        """Remove an integrated capability"""
+        if capability_id not in self.integrated_capabilities:
+            return False
+
+        try:
+            # Remove from orchestrator
+            success = await self.orchestrator.remove_external_capability(capability_id)
+
+            if success:
+                # Update status
+                if capability_id in self.discovered_capabilities:
+                    self.discovered_capabilities[capability_id].status = IntegrationStatus.DEPRECATED
+
+                # Remove from integrated set
+                del self.integrated_capabilities[capability_id]
+
+                self.logger.info(f"Removed capability: {capability_id}")
+                return True
+
+        except Exception as e:
+            self.logger.error(f"Error removing capability {capability_id}: {e}")
+
+        return False
+
+    async def close(self):
+        """Clean shutdown of the absorption API"""
+        await self.session.close()
+
+
+# Example usage and integration
+class MockOrchestrator:
+    """Mock orchestrator for testing the Absorption API"""
+
+    def __init__(self):
+        self.agents = {}
+        self.external_capabilities = {}
+
+    async def get_agent_for_task_types(self, task_types: List[str]):
+        """Get current agent handling these task types"""
+        # Mock baseline agent
+        class MockAgent:
+            async def execute(self, task):
+                # Simulate baseline performance
+                return {"output": "baseline response", "confidence": 0.7}
+
+        return MockAgent()
+
+    async def integrate_external_capability(self, config: Dict[str, Any]) -> bool:
+        """Integrate an external capability"""
+        capability_id = config['capability_id']
+        self.external_capabilities[capability_id] = config
+
+        print(f"Integrated capability: {config['name']}")
+        print(f"Task types: {config['task_types']}")
+        print(f"Performance: {config.get('performance_metrics', {})}")
+
+        return True
+
+    async def remove_external_capability(self, capability_id: str) -> bool:
+        """Remove an external capability"""
+        if capability_id in self.external_capabilities:
+            del self.external_capabilities[capability_id]
+            return True
+        return False
+
+
+# Example configuration and startup
+async def example_absorption_system():
+    """Example of how to set up and run the Absorption API"""
+
+    # Mock dependencies
+    class MockMetricsClient:
+        async def get_current_metrics(self):
+            return {
+                'accuracy': 0.85,
+                'cost_per_request': 0.02,
+                'avg_latency': 1200
+            }
+
+    class MockPolicyEngine:
+        async def add_dynamic_policy(self, policy):
+            print(f"Added monitoring policy: {policy['name']}")
+            return True
+
+    # Initialize system
+    orchestrator = MockOrchestrator()
+    metrics_client = MockMetricsClient()
+    policy_engine = MockPolicyEngine()
+
+    absorption_api = AbsorptionAPI(orchestrator, metrics_client, policy_engine)
+
+    # Example: Manually add a capability for testing
+    capability_config = {
+        'id': 'test_openai_gpt4',
+        'name': 'OpenAI GPT-4',
+        'type': 'llm_api',
+        'endpoint': 'https://api.openai.com/v1/chat/completions',
+        'api_key_required': True,
+        'task_types': ['generation', 'reasoning', 'analysis'],
+        'description': 'OpenAI GPT-4 language model',
+        'provider': 'openai',
+        'integration_method': 'api'
+    }
+
+    capability_id = await absorption_api.manually_add_capability(capability_config)
+    print(f"Added capability for testing: {capability_id}")
+
+    # Get system status
+    status = await absorption_api.get_absorption_status()
+    print("Absorption System Status:")
+    print(json.dumps(status, indent=2, default=str))
+
+    # Start the absorption loop (in real usage, this runs continuously)
+    # await absorption_api.start_absorption_loop()
+
+    # Clean up
+    await absorption_api.close()
+
+
+if __name__ == "__main__":
+    # Run the example
+    asyncio.run(example_absorption_system())
