@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException
 from datetime import datetime
 from typing import Dict, List
-from models.marketplace import (
+from ..models.marketplace import (
     MarketplaceInstallRequest, MarketplaceInstallResponse,
     MarketplaceSearchRequest, MarketplaceSearchResponse,
     MarketplaceListResponse, MarketplaceStatusRequest, MarketplaceStatusResponse,
     MarketplaceManifest
 )
-from models.base import ErrorResponse
+from ..models.base import ErrorResponse
 import uuid
 from datetime import datetime
 

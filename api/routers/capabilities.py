@@ -3,13 +3,13 @@ from pydantic import BaseModel
 from typing import Dict, Any, List
 from datetime import datetime
 
-from models.capabilities import (
+from ..models.capabilities import (
     CapabilityVerificationRequest, CapabilityVerificationResponse,
     CapabilityQuarantineRequest, CapabilityQuarantineResponse,
     CapabilityPromotionCheckRequest, CapabilityPromotionCheckResponse,
     CapabilityStatsRequest, CapabilityStatsResponse
 )
-from models.base import ErrorResponse, SuccessResponse
+from ..models.base import ErrorResponse, SuccessResponse
 
 router = APIRouter(prefix="/capabilities", tags=["capabilities"])
 

@@ -25,3 +25,7 @@ safety>=2.3.0
 # Performance testing
 locust>=2.14.0
 memory-profiler>=0.60.0
+
+# Database for testing
+sqlalchemy>=2.0.31
+numpy>=1.20.0

@@ -8,9 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from orchestrator.main import app
-from orchestrator.database import Base, get_db
-from orchestrator.config import Settings
+from api.main import app
 
 
 @pytest.fixture(scope="session")
@@ -22,59 +20,10 @@ def event_loop():
 
 
 @pytest.fixture
-def test_settings():
-    """Test configuration settings."""
-    return Settings(
-        database_url="sqlite:///:memory:",
-        temporal_host="localhost",
-        temporal_port=7233,
-        opa_url="http://localhost:8181",
-        prometheus_pushgateway_url="http://localhost:9091",
-        budget_max_usd=1.0,
-        openai_api_key="test-key",
-        anthropic_api_key="test-key",
-        mhe_service_url="http://localhost:8000"
-    )
-
-
-@pytest.fixture
-def test_db_engine():
-    """Create test database engine."""
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    Base.metadata.create_all(bind=engine)
-    return engine
-
-
-@pytest.fixture
-def test_db_session(test_db_engine):
-    """Create test database session."""
-    TestingSessionLocal = sessionmaker(
-        autocommit=False, autoflush=False, bind=test_db_engine
-    )
-    session = TestingSessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-
-
-@pytest.fixture
-def test_client(test_db_session):
-    """Create test client with dependency overrides."""
-    def override_get_db():
-        try:
-            yield test_db_session
-        finally:
-            test_db_session.close()
-    
-    app.dependency_overrides[get_db] = override_get_db
+def test_client():
+    """Create a test client."""
     client = TestClient(app)
     yield client
-    app.dependency_overrides.clear()
 
 
 @pytest.fixture

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException
-from models.supplychain import (
+from ..models.supplychain import (
     SupplyChainScoreRequest, SupplyChainScoreResponse,
     SupplyChainValidateRequest, SupplyChainValidateResponse,
     SupplyChainAuditRequest, SupplyChainAuditResponse,
     SupplyChainReportRequest, SupplyChainReportResponse
 )
-from models.base import ErrorResponse
+from ..models.base import ErrorResponse
 from datetime import datetime
 import uuid
 

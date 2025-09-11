@@ -2,13 +2,13 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any, List
 from datetime import datetime
-from models.federation import (
+from ..models.federation import (
     FederatedSampleRequest, FederatedSampleResponse,
     FederatedSummaryRequest, FederatedSummaryResponse,
     DriftDetectionRequest, DriftDetectionResponse,
     ClusterHealthRequest, ClusterHealthResponse
 )
-from models.base import ErrorResponse, SuccessResponse
+from ..models.base import ErrorResponse, SuccessResponse
 
 router = APIRouter(prefix="/federation", tags=["federation"])
 
