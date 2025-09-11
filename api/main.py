@@ -7,17 +7,17 @@ import uvicorn
 import logging
 from contextlib import asynccontextmanager
 
-from routers import (
-    capabilities, experiments, federation, governance, 
+from .routers import (
+    capabilities, experiments, federation, governance,
     marketplace, rollback, supplychain
 )
 # from orchestrator.clients.llm_client import LLMClient
 # from orchestrator.clients.mhe_client import MHEClient
-from models.orchestration import (
-    OrchestrateRequest, OrchestrateResponse, AgentManifest, 
+from .models.orchestration import (
+    OrchestrateRequest, OrchestrateResponse, AgentManifest,
     AgentRegistrationResponse, PlaybookTrialRequest, PlaybookTrialResponse
 )
-from models.base import ErrorResponse, SuccessResponse
+from .models.base import ErrorResponse, SuccessResponse
 
 app = FastAPI(title="Spooky Logic API", version="0.1")
 

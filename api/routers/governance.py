@@ -3,11 +3,11 @@ from pydantic import BaseModel
 from typing import Dict, Any, List
 from datetime import datetime
 
-from models.governance import (
+from ..models.governance import (
     ProposalRequest, ProposalResponse, VoteRequest, VoteResponse,
     GovernanceBoardResponse, ProposalDetailsResponse
 )
-from models.base import ErrorResponse, SuccessResponse
+from ..models.base import ErrorResponse, SuccessResponse
 
 router = APIRouter(prefix="/governance", tags=["governance"])
 
