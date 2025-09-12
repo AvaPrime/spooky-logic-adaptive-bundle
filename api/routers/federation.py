@@ -18,7 +18,20 @@ SAMPLES = []
 
 @router.post("/sample", response_model=FederatedSampleResponse)
 async def submit_sample(request: FederatedSampleRequest):
-    """Submit a federated learning sample"""
+    """Submit a federated learning sample.
+
+    This endpoint allows a client to submit a sample for federated learning.
+    The sample is associated with a cluster, and the cluster's statistics
+    are updated.
+
+    Args:
+        request (FederatedSampleRequest): The request body containing the federated
+            learning sample.
+
+    Returns:
+        FederatedSampleResponse: The response containing the status of the sample
+            submission.
+    """
     try:
         # Initialize cluster if not exists
         if request.cluster_id not in CLUSTERS:
@@ -64,7 +77,19 @@ async def submit_sample(request: FederatedSampleRequest):
 
 @router.post("/summary", response_model=FederatedSummaryResponse)
 async def get_federated_summary(request: FederatedSummaryRequest):
-    """Get federated learning summary for a cluster"""
+    """Get federated learning summary for a cluster.
+
+    This endpoint returns a summary of the federated learning process for a
+    given cluster, including aggregated features and convergence metrics.
+
+    Args:
+        request (FederatedSummaryRequest): The request body containing the cluster
+            ID and aggregation method.
+
+    Returns:
+        FederatedSummaryResponse: The response containing the federated learning
+            summary.
+    """
     try:
         if request.cluster_id not in CLUSTERS:
             raise HTTPException(status_code=404, detail="Cluster not found")
@@ -122,7 +147,19 @@ async def get_federated_summary(request: FederatedSummaryRequest):
 
 @router.post("/drift-detection", response_model=DriftDetectionResponse)
 async def detect_drift(request: DriftDetectionRequest):
-    """Detect data drift in federated learning"""
+    """Detect data drift in federated learning.
+
+    This endpoint detects data drift in a federated learning cluster by
+    comparing recent samples to older samples.
+
+    Args:
+        request (DriftDetectionRequest): The request body containing the cluster
+            ID and drift detection parameters.
+
+    Returns:
+        DriftDetectionResponse: The response containing the drift detection
+            results.
+    """
     try:
         if request.cluster_id not in CLUSTERS:
             raise HTTPException(status_code=404, detail="Cluster not found")
@@ -202,7 +239,18 @@ async def detect_drift(request: DriftDetectionRequest):
 
 @router.post("/health", response_model=ClusterHealthResponse)
 async def check_cluster_health(request: ClusterHealthRequest):
-    """Check the health of a federated learning cluster"""
+    """Check the health of a federated learning cluster.
+
+    This endpoint checks the health of a federated learning cluster by
+    examining its activity and participation rate.
+
+    Args:
+        request (ClusterHealthRequest): The request body containing the cluster
+            ID to check.
+
+    Returns:
+        ClusterHealthResponse: The response containing the cluster health status.
+    """
     try:
         if request.cluster_id not in CLUSTERS:
             raise HTTPException(status_code=404, detail="Cluster not found")

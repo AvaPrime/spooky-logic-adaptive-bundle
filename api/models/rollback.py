@@ -1,4 +1,9 @@
-"""Pydantic models for rollback API endpoints."""
+"""Pydantic models for rollback API endpoints.
+
+This module defines the Pydantic models used for request and response validation
+in the rollback API endpoints. These models ensure that the data flowing
+in and out of the API conforms to a specific schema.
+"""
 
 from pydantic import Field, validator
 from typing import Dict, Any, Optional, List
@@ -8,7 +13,17 @@ from .base import BaseAPIModel, TimestampedModel
 
 
 class RollbackTrigger(str, Enum):
-    """Rollback trigger types."""
+    """Enumeration of possible rollback trigger types.
+
+    Attributes:
+        ERROR_RATE: Rollback triggered by error rate.
+        LATENCY: Rollback triggered by latency.
+        THROUGHPUT: Rollback triggered by throughput.
+        CUSTOM_METRIC: Rollback triggered by a custom metric.
+        MANUAL: Rollback triggered manually.
+        HEALTH_CHECK: Rollback triggered by a health check failure.
+        DEPENDENCY_FAILURE: Rollback triggered by a dependency failure.
+    """
     ERROR_RATE = "error_rate"
     LATENCY = "latency"
     THROUGHPUT = "throughput"
@@ -19,7 +34,17 @@ class RollbackTrigger(str, Enum):
 
 
 class RollbackStatus(str, Enum):
-    """Rollback status values."""
+    """Enumeration of possible rollback statuses.
+
+    Attributes:
+        INACTIVE: The rollback is inactive.
+        MONITORING: The system is monitoring for rollback triggers.
+        TRIGGERED: A rollback has been triggered.
+        ROLLING_BACK: The system is currently rolling back.
+        COMPLETED: The rollback has completed successfully.
+        FAILED: The rollback has failed.
+        PAUSED: The rollback is paused.
+    """
     INACTIVE = "inactive"
     MONITORING = "monitoring"
     TRIGGERED = "triggered"
@@ -30,7 +55,16 @@ class RollbackStatus(str, Enum):
 
 
 class MetricComparison(str, Enum):
-    """Metric comparison operators."""
+    """Enumeration of metric comparison operators.
+
+    Attributes:
+        GREATER_THAN: Greater than.
+        GREATER_EQUAL: Greater than or equal to.
+        LESS_THAN: Less than.
+        LESS_EQUAL: Less than or equal to.
+        EQUAL: Equal to.
+        NOT_EQUAL: Not equal to.
+    """
     GREATER_THAN = "gt"
     GREATER_EQUAL = "gte"
     LESS_THAN = "lt"
@@ -40,7 +74,17 @@ class MetricComparison(str, Enum):
 
 
 class RollbackThreshold(BaseAPIModel):
-    """Rollback threshold configuration."""
+    """A configuration for a rollback threshold.
+
+    Attributes:
+        metric_name: The name of the metric to monitor.
+        comparison: The comparison operator for the threshold.
+        threshold_value: The threshold value for triggering a rollback.
+        duration_seconds: The duration the threshold must be breached.
+        sample_size: The minimum number of samples required for evaluation.
+        weight: The weight of this threshold in the decision-making process.
+        enabled: Whether the threshold is active.
+    """
     metric_name: str = Field(
         ...,
         min_length=1,
@@ -77,7 +121,16 @@ class RollbackThreshold(BaseAPIModel):
 
 
 class RollbackTarget(BaseAPIModel):
-    """Rollback target configuration."""
+    """A configuration for a rollback target.
+
+    Attributes:
+        deployment_id: The identifier of the target deployment.
+        version: The target version to roll back to.
+        environment: The target environment (e.g., prod, staging).
+        rollback_strategy: The rollback deployment strategy.
+        traffic_percentage: The traffic percentage for a gradual rollback.
+        validation_checks: A list of post-rollback validation checks.
+    """
     deployment_id: str = Field(
         ...,
         min_length=1,
@@ -115,7 +168,19 @@ class RollbackTarget(BaseAPIModel):
 
 
 class AutoRollbackStartRequest(TimestampedModel):
-    """Request model for starting auto-rollback monitoring."""
+    """Request model for starting auto-rollback monitoring.
+
+    Attributes:
+        deployment_id: The deployment to monitor.
+        thresholds: The rollback thresholds to monitor.
+        rollback_target: The target configuration for the rollback.
+        monitoring_duration: The maximum monitoring duration in seconds.
+        cooldown_period: The cooldown period between rollbacks.
+        notification_channels: The notification channels for alerts.
+        auto_approve: Whether to auto-approve the rollback without human intervention.
+        dry_run: Whether to simulate the rollback without actual execution.
+        tags: Additional tags for tracking.
+    """
     deployment_id: str = Field(
         ...,
         min_length=1,
@@ -164,6 +229,17 @@ class AutoRollbackStartRequest(TimestampedModel):
     
     @validator('thresholds')
     def validate_thresholds(cls, v):
+        """Validate the rollback thresholds.
+
+        Args:
+            v: The list of rollback thresholds.
+
+        Returns:
+            The validated list of rollback thresholds.
+
+        Raises:
+            ValueError: If the thresholds are invalid.
+        """
         if not v:
             raise ValueError('At least one threshold must be specified')
         
@@ -181,6 +257,17 @@ class AutoRollbackStartRequest(TimestampedModel):
     
     @validator('notification_channels')
     def validate_notification_channels(cls, v):
+        """Validate the notification channels.
+
+        Args:
+            v: The list of notification channels.
+
+        Returns:
+            The validated list of notification channels.
+
+        Raises:
+            ValueError: If any of the notification channels are invalid.
+        """
         if v:
             valid_channels = ['email', 'slack', 'webhook', 'sms', 'pagerduty']
             for channel in v:
@@ -190,13 +277,35 @@ class AutoRollbackStartRequest(TimestampedModel):
     
     @validator('tags')
     def validate_tags(cls, v):
+        """Validate the tags.
+
+        Args:
+            v: The tags dictionary.
+
+        Returns:
+            The validated tags dictionary.
+
+        Raises:
+            ValueError: If the tags are too large.
+        """
         if v and len(str(v)) > 2000:  # 2KB limit
             raise ValueError('Tags too large (max 2KB when serialized)')
         return v
 
 
 class AutoRollbackStartResponse(BaseAPIModel):
-    """Response model for auto-rollback start."""
+    """Response model for starting auto-rollback monitoring.
+
+    Attributes:
+        session_id: The ID of the rollback monitoring session.
+        deployment_id: The ID of the monitored deployment.
+        status: The status of the rollback monitoring.
+        monitoring_started_at: The timestamp when monitoring started.
+        monitoring_expires_at: The timestamp when monitoring will expire.
+        thresholds_count: The number of active thresholds.
+        rollback_target: The configured rollback target.
+        dry_run: Whether this is a dry run.
+    """
     session_id: str = Field(..., description="Rollback monitoring session ID")
     deployment_id: str = Field(..., description="Monitored deployment ID")
     status: RollbackStatus = Field(default=RollbackStatus.MONITORING)
@@ -208,7 +317,14 @@ class AutoRollbackStartResponse(BaseAPIModel):
 
 
 class RollbackStatusRequest(BaseAPIModel):
-    """Request model for rollback status check."""
+    """Request model for checking the status of a rollback.
+
+    Attributes:
+        session_id: The specific session ID to check (latest if not provided).
+        deployment_id: Filter by deployment ID.
+        include_metrics: Whether to include current metric values in the response.
+        include_history: Whether to include rollback history in the response.
+    """
     session_id: Optional[str] = Field(
         None,
         description="Specific session ID to check (latest if not provided)"
@@ -228,7 +344,18 @@ class RollbackStatusRequest(BaseAPIModel):
 
 
 class MetricSnapshot(BaseAPIModel):
-    """Current metric snapshot."""
+    """A snapshot of a metric at a specific point in time.
+
+    Attributes:
+        metric_name: The name of the metric.
+        current_value: The current value of the metric.
+        threshold_value: The configured threshold for the metric.
+        comparison: The comparison operator for the threshold.
+        is_breached: Whether the threshold is currently breached.
+        breach_duration: How long the threshold has been breached in seconds.
+        sample_count: The number of samples collected.
+        last_updated: The timestamp of the last metric update.
+    """
     metric_name: str = Field(..., description="Metric name")
     current_value: float = Field(..., description="Current metric value")
     threshold_value: float = Field(..., description="Configured threshold")
@@ -243,7 +370,15 @@ class MetricSnapshot(BaseAPIModel):
 
 
 class RollbackEvent(BaseAPIModel):
-    """Rollback event record."""
+    """A record of a rollback event.
+
+    Attributes:
+        event_type: The type of the rollback event.
+        timestamp: The timestamp of the event.
+        message: A description of the event.
+        details: Additional details about the event.
+        triggered_by: What triggered this event.
+    """
     event_type: str = Field(
         ...,
         pattern=r"^(started|threshold_breached|triggered|completed|failed|paused|resumed)$",
@@ -262,7 +397,27 @@ class RollbackEvent(BaseAPIModel):
 
 
 class RollbackStatusResponse(BaseAPIModel):
-    """Response model for rollback status."""
+    """Response model for the status of a rollback.
+
+    Attributes:
+        session_id: The ID of the rollback session.
+        deployment_id: The monitored deployment.
+        status: The current rollback status.
+        started_at: The timestamp when monitoring started.
+        expires_at: The timestamp when monitoring expires.
+        last_check_at: The timestamp of the last health check.
+        active_thresholds: The number of active thresholds.
+        breached_thresholds: The number of breached thresholds.
+        current_metrics: The current metric snapshots.
+        rollback_target: The configured rollback target.
+        rollback_triggered_at: The timestamp when the rollback was triggered.
+        rollback_completed_at: The timestamp when the rollback completed.
+        rollback_progress: The rollback progress percentage.
+        events: A list of recent rollback events.
+        error_message: An error message if the rollback failed.
+        dry_run: Whether this was a dry run.
+        next_check_in: The number of seconds until the next health check.
+    """
     session_id: str = Field(..., description="Rollback session ID")
     deployment_id: str = Field(..., description="Monitored deployment")
     status: RollbackStatus = Field(..., description="Current rollback status")
@@ -315,7 +470,13 @@ class RollbackStatusResponse(BaseAPIModel):
 
 
 class RollbackTickRequest(BaseAPIModel):
-    """Request model for rollback tick/heartbeat."""
+    """Request model for a rollback tick/heartbeat.
+
+    Attributes:
+        session_id: The ID of the rollback session to tick.
+        force_check: Whether to force an immediate threshold check.
+        update_metrics: Manual metric updates.
+    """
     session_id: str = Field(
         ...,
         description="Rollback session ID to tick"
@@ -331,7 +492,18 @@ class RollbackTickRequest(BaseAPIModel):
 
 
 class RollbackTickResponse(BaseAPIModel):
-    """Response model for rollback tick."""
+    """Response model for a rollback tick.
+
+    Attributes:
+        session_id: The ID of the rollback session.
+        status: The current status after the tick.
+        checks_performed: The number of checks performed.
+        thresholds_evaluated: The number of thresholds evaluated.
+        breaches_detected: The number of new breaches detected.
+        actions_taken: A list of actions taken during this tick.
+        next_tick_in: The number of seconds until the next automatic tick.
+        tick_duration_ms: The time taken for this tick operation in milliseconds.
+    """
     session_id: str = Field(..., description="Rollback session ID")
     status: RollbackStatus = Field(..., description="Current status after tick")
     checks_performed: int = Field(..., ge=0, description="Number of checks performed")
@@ -352,7 +524,14 @@ class RollbackTickResponse(BaseAPIModel):
 
 
 class RollbackControlRequest(BaseAPIModel):
-    """Request model for rollback control operations."""
+    """Request model for rollback control operations.
+
+    Attributes:
+        session_id: The ID of the rollback session to control.
+        action: The control action to perform.
+        reason: The reason for the control action.
+        force: Whether to force the action even if it is not in the appropriate state.
+    """
     session_id: str = Field(
         ...,
         description="Rollback session ID to control"
@@ -374,7 +553,17 @@ class RollbackControlRequest(BaseAPIModel):
 
 
 class RollbackControlResponse(BaseAPIModel):
-    """Response model for rollback control operations."""
+    """Response model for rollback control operations.
+
+    Attributes:
+        session_id: The ID of the rollback session.
+        action: The action that was performed.
+        previous_status: The status before the action.
+        current_status: The status after the action.
+        success: Whether the action was successful.
+        message: A result message.
+        timestamp: The timestamp of the operation.
+    """
     session_id: str = Field(..., description="Rollback session ID")
     action: str = Field(..., description="Action that was performed")
     previous_status: RollbackStatus = Field(..., description="Status before action")

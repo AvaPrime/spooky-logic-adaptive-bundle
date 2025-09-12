@@ -59,11 +59,23 @@ app.include_router(supplychain.router)
 #         raise HTTPException(status_code=500, detail=str(e))
 @app.get("/healthz")
 def healthz():
-    """Returns a 200 OK status for health checks."""
+    """Returns a 200 OK status for health checks.
+
+    Returns:
+        dict: A dictionary with a single key "ok" and value True.
+    """
     return {"ok": True}
 @app.post("/playbooks/{name}/trial", response_model=PlaybookTrialResponse)
 async def trial_playbook(name: str, request: PlaybookTrialRequest):
-    """Enable trial mode for a specific playbook"""
+    """Enable trial mode for a specific playbook.
+
+    Args:
+        name (str): The name of the playbook to enable trial mode for.
+        request (PlaybookTrialRequest): The request body containing the trial parameters.
+
+    Returns:
+        PlaybookTrialResponse: The response containing the trial details.
+    """
     try:
         # TODO: Implement playbook trial logic
         # TODO: Set up monitoring and limits for trial
@@ -85,7 +97,14 @@ async def trial_playbook(name: str, request: PlaybookTrialRequest):
 
 @app.post("/agents/register", response_model=AgentRegistrationResponse)
 async def register_agent(manifest: AgentManifest):
-    """Register a new agent with the system"""
+    """Register a new agent with the system.
+
+    Args:
+        manifest (AgentManifest): The manifest of the agent to register.
+
+    Returns:
+        AgentRegistrationResponse: The response containing the registration details.
+    """
     try:
         # TODO: Store agent registration in database
         # TODO: Validate agent capabilities

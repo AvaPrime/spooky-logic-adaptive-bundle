@@ -18,7 +18,19 @@ CAPABILITIES = []
 
 @router.post("/verify", response_model=CapabilityVerificationResponse)
 async def verify_capability(request: CapabilityVerificationRequest):
-    """Verify a capability bundle"""
+    """Verify a capability bundle.
+
+    This endpoint simulates the verification of a capability bundle. It checks for the
+    presence of public keys and simulates signature verification.
+
+    Args:
+        request (CapabilityVerificationRequest): The request body containing the capability
+            bundle and public keys to verify.
+
+    Returns:
+        CapabilityVerificationResponse: The response containing the verification status
+            and details.
+    """
     try:
         # Find or create capability record
         capability = None
@@ -80,7 +92,17 @@ async def verify_capability(request: CapabilityVerificationRequest):
 
 @router.post("/quarantine", response_model=CapabilityQuarantineResponse)
 async def quarantine_capability(request: CapabilityQuarantineRequest):
-    """Quarantine a capability bundle"""
+    """Quarantine a capability bundle.
+
+    This endpoint quarantines a capability bundle, marking it as unavailable for use.
+
+    Args:
+        request (CapabilityQuarantineRequest): The request body containing the capability
+            bundle to quarantine and the reason.
+
+    Returns:
+        CapabilityQuarantineResponse: The response containing the quarantine status.
+    """
     try:
         # Find capability
         capability = None
@@ -118,7 +140,18 @@ async def quarantine_capability(request: CapabilityQuarantineRequest):
 
 @router.post("/promotion-check", response_model=CapabilityPromotionCheckResponse)
 async def check_promotion_readiness(request: CapabilityPromotionCheckRequest):
-    """Check if a capability is ready for promotion from quarantine"""
+    """Check if a capability is ready for promotion from quarantine.
+
+    This endpoint checks if a quarantined capability meets the criteria for promotion.
+
+    Args:
+        request (CapabilityPromotionCheckRequest): The request body containing the
+            capability ID and promotion criteria.
+
+    Returns:
+        CapabilityPromotionCheckResponse: The response containing the promotion
+            readiness status.
+    """
     try:
         # Find capability
         capability = None
@@ -152,7 +185,17 @@ async def check_promotion_readiness(request: CapabilityPromotionCheckRequest):
 
 @router.post("/stats", response_model=CapabilityStatsResponse)
 async def get_capability_stats(request: CapabilityStatsRequest):
-    """Get statistics for capabilities"""
+    """Get statistics for capabilities.
+
+    This endpoint returns statistics about the capabilities in the system.
+
+    Args:
+        request (CapabilityStatsRequest): The request body containing the filters for
+            the statistics.
+
+    Returns:
+        CapabilityStatsResponse: The response containing the capability statistics.
+    """
     try:
         # Filter capabilities based on request
         filtered_caps = CAPABILITIES

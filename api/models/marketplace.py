@@ -1,4 +1,9 @@
-"""Pydantic models for marketplace API endpoints."""
+"""Pydantic models for marketplace API endpoints.
+
+This module defines the Pydantic models used for request and response validation
+in the marketplace API endpoints. These models ensure that the data flowing
+in and out of the API conforms to a specific schema.
+"""
 
 from pydantic import Field, validator, HttpUrl
 from typing import Dict, Any, Optional, List
@@ -9,7 +14,17 @@ import re
 
 
 class InstallationStatus(str, Enum):
-    """Installation status values."""
+    """Enumeration of possible installation statuses.
+
+    Attributes:
+        PENDING: The installation is pending.
+        DOWNLOADING: The package is being downloaded.
+        VERIFYING: The package is being verified.
+        INSTALLING: The package is being installed.
+        COMPLETED: The installation is complete.
+        FAILED: The installation has failed.
+        ROLLED_BACK: The installation has been rolled back.
+    """
     PENDING = "pending"
     DOWNLOADING = "downloading"
     VERIFYING = "verifying"
@@ -20,7 +35,17 @@ class InstallationStatus(str, Enum):
 
 
 class CapabilityCategory(str, Enum):
-    """Capability categories."""
+    """Enumeration of capability categories.
+
+    Attributes:
+        AI_MODEL: An AI model.
+        DATA_PROCESSOR: A data processor.
+        SECURITY_TOOL: A security tool.
+        MONITORING: A monitoring tool.
+        INTEGRATION: An integration with an external service.
+        WORKFLOW: A workflow or playbook.
+        UTILITY: A utility or helper tool.
+    """
     AI_MODEL = "ai_model"
     DATA_PROCESSOR = "data_processor"
     SECURITY_TOOL = "security_tool"
@@ -31,7 +56,31 @@ class CapabilityCategory(str, Enum):
 
 
 class MarketplaceManifest(BaseAPIModel):
-    """Marketplace capability manifest model."""
+    """A manifest for a capability in the marketplace.
+
+    This model defines the structure of a capability manifest, which contains
+    all the necessary information to describe, install, and use a capability.
+
+    Attributes:
+        id: The unique identifier of the capability.
+        name: The human-readable name of the capability.
+        version: The semantic version of the capability.
+        description: A detailed description of the capability.
+        category: The category of the capability.
+        author: The author or publisher of the capability.
+        license: The license identifier of the capability.
+        playbook_url: The URL to download the capability playbook.
+        sha256: The SHA256 hash of the playbook file.
+        signature: The digital signature of the manifest.
+        homepage: The URL of the capability's homepage.
+        documentation: The URL of the capability's documentation.
+        repository: The URL of the capability's source code repository.
+        tags: A list of tags for discovery.
+        requirements: The system requirements and dependencies.
+        configuration: The default configuration parameters.
+        pricing: The pricing information.
+        support_contact: The support contact information.
+    """
     id: str = Field(
         ...,
         min_length=1,
@@ -114,6 +163,17 @@ class MarketplaceManifest(BaseAPIModel):
     
     @validator('description')
     def validate_description(cls, v):
+        """Validate the description.
+
+        Args:
+            v: The description string.
+
+        Returns:
+            The validated description string.
+
+        Raises:
+            ValueError: If the description is too short.
+        """
         # Clean whitespace
         v = ' '.join(v.split())
         if len(v) < 20:
@@ -122,6 +182,14 @@ class MarketplaceManifest(BaseAPIModel):
     
     @validator('tags')
     def validate_tags(cls, v):
+        """Validate the tags.
+
+        Args:
+            v: The list of tags.
+
+        Returns:
+            The validated list of tags.
+        """
         if v:
             cleaned_tags = []
             for tag in v:
@@ -135,19 +203,51 @@ class MarketplaceManifest(BaseAPIModel):
     
     @validator('requirements')
     def validate_requirements(cls, v):
+        """Validate the requirements.
+
+        Args:
+            v: The requirements dictionary.
+
+        Returns:
+            The validated requirements dictionary.
+
+        Raises:
+            ValueError: If the requirements are too large.
+        """
         if v and len(str(v)) > 10000:  # 10KB limit
             raise ValueError('Requirements too large (max 10KB when serialized)')
         return v
     
     @validator('configuration')
     def validate_configuration(cls, v):
+        """Validate the configuration.
+
+        Args:
+            v: The configuration dictionary.
+
+        Returns:
+            The validated configuration dictionary.
+
+        Raises:
+            ValueError: If the configuration is too large.
+        """
         if v and len(str(v)) > 20000:  # 20KB limit
             raise ValueError('Configuration too large (max 20KB when serialized)')
         return v
 
 
 class MarketplaceInstallRequest(TimestampedModel):
-    """Request model for marketplace installation."""
+    """Request model for installing a capability from the marketplace.
+
+    Attributes:
+        manifest: The manifest of the capability to install.
+        public_key_hex: The public key for signature verification.
+        dest_dir: The destination directory for the installation.
+        installation_options: Installation-specific options.
+        force_reinstall: Whether to force reinstallation if the capability already exists.
+        verify_dependencies: Whether to verify all dependencies before installation.
+        sandbox_mode: Whether to install in sandbox mode for testing.
+    """
     manifest: MarketplaceManifest = Field(
         ...,
         description="Capability manifest to install"
@@ -181,6 +281,17 @@ class MarketplaceInstallRequest(TimestampedModel):
     
     @validator('public_key_hex')
     def validate_public_key(cls, v):
+        """Validate the public key.
+
+        Args:
+            v: The public key in hex format.
+
+        Returns:
+            The validated public key.
+
+        Raises:
+            ValueError: If the public key is invalid.
+        """
         # Remove whitespace and validate hex format
         v = v.replace(' ', '').replace('\n', '')
         if not re.match(r'^[a-fA-F0-9]+$', v):
@@ -191,6 +302,17 @@ class MarketplaceInstallRequest(TimestampedModel):
     
     @validator('dest_dir')
     def validate_dest_dir(cls, v):
+        """Validate the destination directory.
+
+        Args:
+            v: The destination directory path.
+
+        Returns:
+            The validated destination directory path.
+
+        Raises:
+            ValueError: If the destination directory path is invalid.
+        """
         if v:
             # Basic path validation
             if '..' in v or v.startswith('/'):
@@ -201,13 +323,36 @@ class MarketplaceInstallRequest(TimestampedModel):
     
     @validator('installation_options')
     def validate_installation_options(cls, v):
+        """Validate the installation options.
+
+        Args:
+            v: The installation options dictionary.
+
+        Returns:
+            The validated installation options dictionary.
+
+        Raises:
+            ValueError: If the installation options are too large.
+        """
         if v and len(str(v)) > 5000:  # 5KB limit
             raise ValueError('Installation options too large (max 5KB when serialized)')
         return v
 
 
 class MarketplaceInstallResponse(BaseAPIModel):
-    """Response model for marketplace installation."""
+    """Response model for installing a capability from the marketplace.
+
+    Attributes:
+        installed: The path to the installed file.
+        installation_id: The ID for tracking the installation.
+        capability_id: The ID of the installed capability.
+        version: The version of the installed capability.
+        status: The status of the installation.
+        verification_results: The results of the verification checks.
+        installation_time: The timestamp of the installation.
+        file_size_bytes: The size of the installed file in bytes.
+        checksum_verified: Whether the checksum was verified.
+    """
     installed: str = Field(..., description="Installed file path")
     installation_id: Optional[str] = Field(None, description="Installation tracking ID")
     capability_id: str = Field(..., description="Installed capability ID")
@@ -223,7 +368,21 @@ class MarketplaceInstallResponse(BaseAPIModel):
 
 
 class MarketplaceSearchRequest(BaseAPIModel):
-    """Request model for marketplace search."""
+    """Request model for searching the marketplace.
+
+    Attributes:
+        query: The search query string.
+        category: Filter by category.
+        tags: Filter by tags.
+        author: Filter by author.
+        license: Filter by license.
+        min_version: The minimum version requirement.
+        verified_only: Whether to only return verified capabilities.
+        page: The page number for pagination.
+        size: The page size for pagination.
+        sort_by: The field to sort the results by.
+        sort_order: The sort order (asc or desc).
+    """
     query: Optional[str] = Field(
         None,
         max_length=200,
@@ -272,13 +431,31 @@ class MarketplaceSearchRequest(BaseAPIModel):
     
     @validator('tags')
     def validate_search_tags(cls, v):
+        """Validate the search tags.
+
+        Args:
+            v: The list of search tags.
+
+        Returns:
+            The validated list of search tags.
+        """
         if v:
             return [tag.strip().lower() for tag in v if tag.strip()]
         return []
 
 
 class MarketplaceSearchResponse(BaseAPIModel):
-    """Response model for marketplace search."""
+    """Response model for searching the marketplace.
+
+    Attributes:
+        capabilities: A list of matching capabilities.
+        total: The total number of matches.
+        page: The current page number.
+        size: The page size.
+        has_next: Whether there are more pages.
+        facets: Search facets for filtering.
+        search_time_ms: The search execution time in milliseconds.
+    """
     capabilities: List[Dict[str, Any]] = Field(
         ...,
         description="List of matching capabilities"
@@ -295,7 +472,20 @@ class MarketplaceSearchResponse(BaseAPIModel):
 
 
 class MarketplaceCapabilityDetails(MarketplaceManifest):
-    """Extended capability details for marketplace."""
+    """Extended capability details for the marketplace.
+
+    Attributes:
+        downloads: The number of downloads.
+        rating: The average rating.
+        review_count: The number of reviews.
+        created_at: The timestamp when the capability was created.
+        updated_at: The timestamp when the capability was last updated.
+        verified: Whether the capability is verified.
+        featured: Whether the capability is featured.
+        compatibility: The platform compatibility information.
+        changelog: The version changelog.
+        screenshots: A list of screenshot URLs.
+    """
     downloads: int = Field(default=0, ge=0, description="Download count")
     rating: Optional[float] = Field(None, ge=0.0, le=5.0, description="Average rating")
     review_count: int = Field(default=0, ge=0, description="Number of reviews")
@@ -319,7 +509,14 @@ class MarketplaceCapabilityDetails(MarketplaceManifest):
 
 
 class MarketplaceUninstallRequest(BaseAPIModel):
-    """Request model for capability uninstallation."""
+    """Request model for uninstalling a capability.
+
+    Attributes:
+        capability_id: The ID of the capability to uninstall.
+        version: The specific version to uninstall (latest if not specified).
+        remove_data: Whether to remove associated data.
+        force: Whether to force uninstallation even if the capability is in use.
+    """
     capability_id: str = Field(
         ...,
         min_length=1,
@@ -341,7 +538,15 @@ class MarketplaceUninstallRequest(BaseAPIModel):
 
 
 class MarketplaceUninstallResponse(BaseAPIModel):
-    """Response model for capability uninstallation."""
+    """Response model for uninstalling a capability.
+
+    Attributes:
+        uninstalled: The ID of the uninstalled capability.
+        version: The version of the uninstalled capability.
+        files_removed: A list of removed files.
+        data_removed: Whether data was removed.
+        uninstall_time: The timestamp of the uninstallation.
+    """
     uninstalled: str = Field(..., description="Uninstalled capability ID")
     version: str = Field(..., description="Uninstalled version")
     files_removed: List[str] = Field(
@@ -353,7 +558,14 @@ class MarketplaceUninstallResponse(BaseAPIModel):
 
 
 class MarketplaceListResponse(BaseAPIModel):
-    """Response model for marketplace package listing."""
+    """Response model for listing packages in the marketplace.
+
+    Attributes:
+        packages: A list of available packages.
+        total_count: The total number of packages.
+        categories: A list of available categories.
+        packages_by_category: The packages grouped by category.
+    """
     packages: List[Dict[str, Any]] = Field(..., description="List of available packages")
     total_count: int = Field(..., ge=0, description="Total number of packages")
     categories: List[str] = Field(default_factory=list, description="Available categories")
@@ -364,12 +576,26 @@ class MarketplaceListResponse(BaseAPIModel):
 
 
 class MarketplaceStatusRequest(BaseAPIModel):
-    """Request model for marketplace status check."""
+    """Request model for checking the status of a marketplace installation.
+
+    Attributes:
+        installation_id: The ID of the installation to check.
+    """
     installation_id: str = Field(..., description="Installation ID to check")
 
 
 class MarketplaceStatusResponse(BaseAPIModel):
-    """Response model for marketplace status check."""
+    """Response model for the status of a marketplace installation.
+
+    Attributes:
+        installation_id: The ID of the installation.
+        status: The current installation status.
+        progress: The installation progress percentage.
+        message: A status message.
+        error: An error message if the installation failed.
+        started_at: The timestamp when the installation started.
+        completed_at: The timestamp when the installation completed.
+    """
     installation_id: str = Field(..., description="Installation ID")
     status: InstallationStatus = Field(..., description="Current installation status")
     progress: Optional[float] = Field(None, ge=0.0, le=100.0, description="Installation progress percentage")

@@ -3,17 +3,19 @@ from temporalio.client import Client
 from orchestrator.worker import Orchestrate
 
 async def start_orchestration(goal: str, playbook: str, budget: float, risk: int) -> str:
-    """
-    Starts an orchestration workflow.
+    """Starts an orchestration workflow in Temporal.
+
+    This function connects to the Temporal server and starts a new orchestration
+    workflow with the given parameters.
 
     Args:
-        goal (str): The goal of the orchestration.
-        playbook (str): The playbook to use for the orchestration.
-        budget (float): The budget for the orchestration.
-        risk (int): The risk level of the orchestration.
+        goal: The goal of the orchestration.
+        playbook: The playbook to use for the orchestration.
+        budget: The budget for the orchestration.
+        risk: The risk level of the orchestration.
 
     Returns:
-        str: The ID of the started workflow run.
+        The ID of the started workflow run.
     """
     client = await Client.connect(os.getenv("TEMPORAL_HOST", "temporal:7233"))
     run_id = f"run-{uuid.uuid4().hex[:12]}"

@@ -6,7 +6,11 @@ API = os.getenv("API_URL", "http://localhost:8080")
 
 @app.command()
 def list_playbooks():
-    """Lists all available playbooks."""
+    """Lists all available playbooks.
+
+    This command scans the 'playbooks' directory for YAML files and prints
+    a summary of each playbook, including its name, tenant, and number of steps.
+    """
     # For now, just list local YAML files
     import pathlib, yaml
     pbdir = pathlib.Path("playbooks")
@@ -16,16 +20,18 @@ def list_playbooks():
 
 @app.command()
 def record_exp(experiment:str, arm:str, score:float, cost:float, latency:float, domain:str="general"):
-    """
-    Records the results of an experiment.
+    """Records the results of an experiment.
+
+    This command sends a POST request to the API to record the results of an
+    experiment, including its score, cost, and latency.
 
     Args:
-        experiment (str): The name of the experiment.
-        arm (str): The arm of the experiment.
-        score (float): The score of the experiment.
-        cost (float): The cost of the experiment.
-        latency (float): The latency of the experiment in milliseconds.
-        domain (str, optional): The domain of the experiment. Defaults to "general".
+        experiment: The name of the experiment.
+        arm: The arm of the experiment.
+        score: The score of the experiment.
+        cost: The cost of the experiment.
+        latency: The latency of the experiment in milliseconds.
+        domain: The domain of the experiment.
     """
     url = f"{API}/expstore/record"
     r = requests.post(url, json={"experiment":experiment,"arm":arm,"score":score,"cost":cost,"latency_ms":latency,"domain":domain})
@@ -33,11 +39,13 @@ def record_exp(experiment:str, arm:str, score:float, cost:float, latency:float, 
 
 @app.command()
 def promote_check(experiment:str):
-    """
-    Checks the promotion status of an experiment.
+    """Checks the promotion status of an experiment.
+
+    This command sends a GET request to the API to retrieve the summary of an
+    experiment, which can be used to check its promotion status.
 
     Args:
-        experiment (str): The name of the experiment to check.
+        experiment: The name of the experiment to check.
     """
     url = f"{API}/experiments/summary?experiment={experiment}"
     r = requests.get(url)

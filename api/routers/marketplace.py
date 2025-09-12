@@ -50,7 +50,20 @@ AVAILABLE_PACKAGES = {
 
 @router.post("/install", response_model=MarketplaceInstallResponse)
 async def install_package(request: MarketplaceInstallRequest):
-    """Install a package from the marketplace"""
+    """Install a package from the marketplace.
+
+    This endpoint simulates the installation of a package from the marketplace.
+    It checks for package availability, version compatibility, and whether the
+    package is already installed.
+
+    Args:
+        request (MarketplaceInstallRequest): The request body containing the
+            details of the package to install.
+
+    Returns:
+        MarketplaceInstallResponse: The response containing the status of the
+            installation.
+    """
     try:
         # Check if package exists in marketplace
         if request.package_name not in AVAILABLE_PACKAGES:
@@ -112,7 +125,18 @@ async def install_package(request: MarketplaceInstallRequest):
 
 @router.post("/search", response_model=MarketplaceSearchResponse)
 async def search_packages(request: MarketplaceSearchRequest):
-    """Search for packages in the marketplace"""
+    """Search for packages in the marketplace.
+
+    This endpoint allows users to search for packages in the marketplace based
+    on a query, category, and author.
+
+    Args:
+        request (MarketplaceSearchRequest): The request body containing the
+            search criteria.
+
+    Returns:
+        MarketplaceSearchResponse: The response containing the search results.
+    """
     try:
         # Filter packages based on search criteria
         filtered_packages = []
@@ -164,7 +188,14 @@ async def search_packages(request: MarketplaceSearchRequest):
 
 @router.get("/list", response_model=MarketplaceListResponse)
 async def list_packages():
-    """List all available packages in the marketplace"""
+    """List all available packages in the marketplace.
+
+    This endpoint returns a list of all available packages in the marketplace,
+    grouped by category.
+
+    Returns:
+        MarketplaceListResponse: The response containing the list of packages.
+    """
     try:
         packages = []
         
@@ -204,7 +235,19 @@ async def list_packages():
 
 @router.post("/status", response_model=MarketplaceStatusResponse)
 async def get_installation_status(request: MarketplaceStatusRequest):
-    """Get the installation status of a package"""
+    """Get the installation status of a package.
+
+    This endpoint returns the installation status of a package, either by
+    installation ID or by package name.
+
+    Args:
+        request (MarketplaceStatusRequest): The request body containing the
+            package identifier.
+
+    Returns:
+        MarketplaceStatusResponse: The response containing the installation
+            status.
+    """
     try:
         # Find installation by package name or installation ID
         installation_record = None

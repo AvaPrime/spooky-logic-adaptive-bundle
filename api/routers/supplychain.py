@@ -17,7 +17,20 @@ SUPPLY_CHAIN_REPORTS = {}
 
 @router.post("/score", response_model=SupplyChainScoreResponse)
 async def calculate_supply_chain_score(request: SupplyChainScoreRequest):
-    """Calculate supply chain security score"""
+    """Calculate the supply chain security score for a component.
+
+    This endpoint calculates a security score for a given component based on
+    various factors such as the presence of an SBOM, provenance verification,
+    code signing, and vulnerability severity.
+
+    Args:
+        request (SupplyChainScoreRequest): The request body containing the
+            details of the component to score.
+
+    Returns:
+        SupplyChainScoreResponse: The response containing the calculated
+            security score and other details.
+    """
     try:
         # Calculate base score based on security checks
         base_score = 0
@@ -99,7 +112,19 @@ async def calculate_supply_chain_score(request: SupplyChainScoreRequest):
 
 @router.post("/validate", response_model=SupplyChainValidateResponse)
 async def validate_supply_chain(request: SupplyChainValidateRequest):
-    """Validate supply chain integrity"""
+    """Validate the integrity of a supply chain.
+
+    This endpoint validates the integrity of a supply chain by checking the
+    SBOM, signatures, and provenance of each component.
+
+    Args:
+        request (SupplyChainValidateRequest): The request body containing the
+            components to validate.
+
+    Returns:
+        SupplyChainValidateResponse: The response containing the validation
+            results.
+    """
     try:
         validation_results = []
         overall_valid = True
@@ -150,7 +175,19 @@ async def validate_supply_chain(request: SupplyChainValidateRequest):
 
 @router.post("/audit", response_model=SupplyChainAuditResponse)
 async def start_supply_chain_audit(request: SupplyChainAuditRequest):
-    """Start a comprehensive supply chain audit"""
+    """Start a comprehensive supply chain audit.
+
+    This endpoint starts a comprehensive audit of a supply chain component,
+    including its dependencies.
+
+    Args:
+        request (SupplyChainAuditRequest): The request body containing the
+            details of the audit to start.
+
+    Returns:
+        SupplyChainAuditResponse: The response containing the status of the
+            audit.
+    """
     try:
         audit_id = str(uuid.uuid4())
         
@@ -201,7 +238,18 @@ async def start_supply_chain_audit(request: SupplyChainAuditRequest):
 
 @router.post("/report", response_model=SupplyChainReportResponse)
 async def generate_supply_chain_report(request: SupplyChainReportRequest):
-    """Generate a supply chain security report"""
+    """Generate a supply chain security report.
+
+    This endpoint generates a security report for a given set of components.
+
+    Args:
+        request (SupplyChainReportRequest): The request body containing the
+            details of the report to generate.
+
+    Returns:
+        SupplyChainReportResponse: The response containing the status of the
+            report generation and a download URL.
+    """
     try:
         report_id = str(uuid.uuid4())
         

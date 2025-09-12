@@ -6,17 +6,23 @@ except Exception:
     Producer = Consumer = None
 
 class KafkaAdapter:
-    """An adapter for interacting with Kafka."""
+    """An adapter for interacting with Kafka.
+
+    This class provides a simple interface for publishing and subscribing to
+    Kafka topics. It requires the `confluent-kafka` library to be installed.
+    """
+
     def __init__(self, brokers: str = None, topic: str = "spooky.events"):
-        """
-        Initializes the KafkaAdapter.
+        """Initializes the KafkaAdapter.
 
         Args:
-            brokers (str, optional): The Kafka brokers to connect to. Defaults to None.
-            topic (str, optional): The topic to publish to and subscribe from. Defaults to "spooky.events".
+            brokers: The Kafka brokers to connect to. If not provided, it
+                defaults to the value of the KAFKA_BROKERS environment
+                variable, or "localhost:9092" if that is not set.
+            topic: The topic to publish to and subscribe from.
 
         Raises:
-            RuntimeError: If the confluent-kafka library is not installed.
+            RuntimeError: If the `confluent-kafka` library is not installed.
         """
         self.brokers = brokers or os.getenv("KAFKA_BROKERS","localhost:9092")
         self.topic = topic
@@ -26,22 +32,24 @@ class KafkaAdapter:
         self.consumer = None
 
     def publish(self, event: dict):
-        """
-        Publishes an event to Kafka.
+        """Publishes an event to Kafka.
 
         Args:
-            event (dict): The event to publish.
+            event: The event to publish.
         """
         self.producer.produce(self.topic, json.dumps(event).encode("utf-8"))
         self.producer.poll(0)
 
     def subscribe(self, group_id: str, handler: Callable[[dict], None]):
-        """
-        Subscribes to a Kafka topic and handles messages.
+        """Subscribes to a Kafka topic and handles messages.
+
+        This method blocks and continuously polls for messages from the Kafka
+        topic. When a message is received, it is passed to the provided
+        handler function.
 
         Args:
-            group_id (str): The consumer group ID.
-            handler (Callable[[dict], None]): The handler function for incoming messages.
+            group_id: The consumer group ID.
+            handler: The handler function for incoming messages.
         """
         self.consumer = Consumer({
             "bootstrap.servers": self.brokers,
