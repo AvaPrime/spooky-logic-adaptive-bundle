@@ -3,15 +3,17 @@ import requests, os, json
 OPA_URL = os.getenv("OPA_URL", "http://opa:8181")
 
 def load_tenant_pack(tenant_id: str, rego_bundle_path: str) -> bool:
-    """
-    Push a rego module bundle to OPA under a tenant-specific package.
+    """Pushes a Rego module bundle to OPA under a tenant-specific package.
+
+    This function reads a Rego bundle from the given path and pushes it to the
+    Open Policy Agent (OPA) server under a tenant-specific package.
 
     Args:
-        tenant_id (str): The ID of the tenant.
-        rego_bundle_path (str): The path to the rego bundle file.
+        tenant_id: The ID of the tenant.
+        rego_bundle_path: The path to the Rego bundle file.
 
     Returns:
-        bool: True if the bundle was loaded successfully, False otherwise.
+        True if the bundle was loaded successfully, False otherwise.
     """
     with open(rego_bundle_path, "rb") as f:
         rego = f.read()

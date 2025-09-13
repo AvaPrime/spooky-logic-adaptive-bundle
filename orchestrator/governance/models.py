@@ -10,7 +10,13 @@ import json
 Base = declarative_base()
 
 class GovernanceProposal(Base):
-    """Database model for governance proposals."""
+    """Database model for governance proposals.
+
+    This class defines the database schema for storing governance proposals.
+    It includes fields for the proposal's title, description, proposer, type,
+    status, and other metadata. It also includes a CRDT timestamp for conflict
+    resolution in a distributed environment.
+    """
     __tablename__ = 'governance_proposals'
     
     id = Column(String(255), primary_key=True)
@@ -28,7 +34,14 @@ class GovernanceProposal(Base):
     crdt_timestamp = Column(Float, nullable=False)
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for CRDT compatibility."""
+        """Converts the proposal to a dictionary.
+
+        This method is used for CRDT compatibility, as it includes the CRDT
+        timestamp in the dictionary representation.
+
+        Returns:
+            A dictionary representation of the proposal.
+        """
         return {
             'id': self.id,
             'title': self.title,
@@ -45,7 +58,14 @@ class GovernanceProposal(Base):
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'GovernanceProposal':
-        """Create instance from dictionary."""
+        """Creates a proposal instance from a dictionary.
+
+        Args:
+            data: The dictionary to create the proposal from.
+
+        Returns:
+            A new instance of the GovernanceProposal class.
+        """
         return cls(
             id=data['id'],
             title=data.get('title', ''),
@@ -59,7 +79,12 @@ class GovernanceProposal(Base):
         )
 
 class GovernanceVote(Base):
-    """Database model for governance votes."""
+    """Database model for governance votes.
+
+    This class defines the database schema for storing governance votes. It
+    includes fields for the proposal ID, voter, vote, weight, and other
+    metadata. It also includes a CRDT timestamp for conflict resolution.
+    """
     __tablename__ = 'governance_votes'
     
     id = Column(String(255), primary_key=True)  # proposal_id:voter format
@@ -75,7 +100,14 @@ class GovernanceVote(Base):
     crdt_timestamp = Column(Float, nullable=False)
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for CRDT compatibility."""
+        """Converts the vote to a dictionary.
+
+        This method is used for CRDT compatibility, as it includes the CRDT
+        timestamp in the dictionary representation.
+
+        Returns:
+            A dictionary representation of the vote.
+        """
         return {
             'proposal_id': self.proposal_id,
             'voter': self.voter,
@@ -89,7 +121,14 @@ class GovernanceVote(Base):
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'GovernanceVote':
-        """Create instance from dictionary."""
+        """Creates a vote instance from a dictionary.
+
+        Args:
+            data: The dictionary to create the vote from.
+
+        Returns:
+            A new instance of the GovernanceVote class.
+        """
         vote_id = f"{data['proposal_id']}:{data['voter']}"
         return cls(
             id=vote_id,
@@ -103,7 +142,12 @@ class GovernanceVote(Base):
         )
 
 class PolicyExecution(Base):
-    """Database model for policy execution history."""
+    """Database model for policy execution history.
+
+    This class defines the database schema for storing the history of policy
+    executions. It includes fields for the rule name, trigger, action,
+    parameters, outcome, and other metadata.
+    """
     __tablename__ = 'policy_executions'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -118,7 +162,11 @@ class PolicyExecution(Base):
     created_at = Column(DateTime, default=func.now())
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
+        """Converts the policy execution to a dictionary.
+
+        Returns:
+            A dictionary representation of the policy execution.
+        """
         return {
             'id': self.id,
             'rule_name': self.rule_name,
@@ -133,7 +181,12 @@ class PolicyExecution(Base):
         }
 
 class PolicyRule(Base):
-    """Database model for storing policy rules."""
+    """Database model for storing policy rules.
+
+    This class defines the database schema for storing policy rules. It
+    includes fields for the rule's name, trigger, conditions, action,
+    parameters, and other metadata.
+    """
     __tablename__ = 'policy_rules'
     
     name = Column(String(255), primary_key=True)
@@ -157,7 +210,11 @@ class PolicyRule(Base):
     enabled = Column(Boolean, default=True)
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
+        """Converts the policy rule to a dictionary.
+
+        Returns:
+            A dictionary representation of the policy rule.
+        """
         return {
             'name': self.name,
             'trigger': self.trigger,

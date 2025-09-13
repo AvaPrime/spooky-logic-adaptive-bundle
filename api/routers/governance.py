@@ -16,7 +16,18 @@ BOARD = []
 
 @router.post("/propose", response_model=ProposalResponse)
 async def propose(proposal: ProposalRequest):
-    """Submit a new governance proposal"""
+    """Submit a new governance proposal.
+
+    This endpoint allows a user to submit a new governance proposal to the board.
+
+    Args:
+        proposal (ProposalRequest): The request body containing the details of the
+            proposal.
+
+    Returns:
+        ProposalResponse: The response containing the status of the proposal
+            submission.
+    """
     try:
         proposal_id = f"prop-{len(BOARD) + 1}"
         
@@ -54,7 +65,17 @@ async def propose(proposal: ProposalRequest):
 
 @router.post("/vote", response_model=VoteResponse)
 async def vote(vote_request: VoteRequest):
-    """Cast a vote on a governance proposal"""
+    """Cast a vote on a governance proposal.
+
+    This endpoint allows a user to cast a vote on an active governance proposal.
+
+    Args:
+        vote_request (VoteRequest): The request body containing the details of the
+            vote.
+
+    Returns:
+        VoteResponse: The response containing the status of the vote.
+    """
     try:
         # Find the proposal
         proposal = None
@@ -113,7 +134,13 @@ async def vote(vote_request: VoteRequest):
 
 @router.get("/board", response_model=GovernanceBoardResponse)
 async def get_board():
-    """Get all governance proposals"""
+    """Get all governance proposals.
+
+    This endpoint returns a list of all governance proposals on the board.
+
+    Returns:
+        GovernanceBoardResponse: The response containing the list of proposals.
+    """
     try:
         return GovernanceBoardResponse(
             proposals=BOARD,
@@ -126,7 +153,16 @@ async def get_board():
 
 @router.get("/proposals/{proposal_id}", response_model=ProposalDetailsResponse)
 async def get_proposal(proposal_id: str):
-    """Get detailed information about a specific proposal"""
+    """Get detailed information about a specific proposal.
+
+    This endpoint returns detailed information about a specific governance proposal.
+
+    Args:
+        proposal_id (str): The ID of the proposal to retrieve.
+
+    Returns:
+        ProposalDetailsResponse: The response containing the proposal details.
+    """
     try:
         proposal = None
         for p in BOARD:

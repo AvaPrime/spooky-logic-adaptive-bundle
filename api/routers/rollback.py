@@ -17,7 +17,20 @@ ROLLBACK_PLANS = {}
 
 @router.post("/start", response_model=RollbackStartResponse)
 async def start_rollback(request: RollbackStartRequest):
-    """Start a rollback plan for a capability"""
+    """Start a rollback plan for a capability.
+
+    This endpoint initiates a rollback plan for a specified capability. It
+    generates a unique plan ID and creates a series of stages for the rollback
+    process.
+
+    Args:
+        request (RollbackStartRequest): The request body containing the details
+            of the rollback to start.
+
+    Returns:
+        RollbackStartResponse: The response containing the details of the started
+            rollback plan.
+    """
     try:
         # Generate rollback plan ID
         plan_id = str(uuid.uuid4())
@@ -63,7 +76,19 @@ async def start_rollback(request: RollbackStartRequest):
 
 @router.post("/status", response_model=RollbackStatusResponse)
 async def get_rollback_status(request: RollbackStatusRequest):
-    """Get the status of a rollback plan"""
+    """Get the status of a rollback plan.
+
+    This endpoint returns the current status of a rollback plan, including its
+    progress and current stage.
+
+    Args:
+        request (RollbackStatusRequest): The request body containing the plan ID
+            or capability ID to query.
+
+    Returns:
+        RollbackStatusResponse: The response containing the status of the
+            rollback plan.
+    """
     try:
         # Find rollback plan
         rollback_plan = None
@@ -108,7 +133,18 @@ async def get_rollback_status(request: RollbackStatusRequest):
 
 @router.post("/execute", response_model=RollbackExecuteResponse)
 async def execute_rollback_step(request: RollbackExecuteRequest):
-    """Execute the next step in a rollback plan"""
+    """Execute the next step in a rollback plan.
+
+    This endpoint executes the next stage of an active rollback plan.
+
+    Args:
+        request (RollbackExecuteRequest): The request body containing the plan ID
+            to execute.
+
+    Returns:
+        RollbackExecuteResponse: The response containing the result of the
+            execution.
+    """
     try:
         rollback_plan = ROLLBACK_PLANS.get(request.plan_id)
         if not rollback_plan:

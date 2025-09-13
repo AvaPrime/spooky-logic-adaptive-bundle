@@ -3,28 +3,36 @@ from .weights import Weights  # user should provide path to existing weights fil
 from orchestrator.security.scorecard import trust_tier
 
 class TrustAwareRouter:
-    """A router that takes trust scores into account when routing."""
+    """A router that takes trust scores into account when routing.
+
+    This class adjusts the weights of different candidates for a given role based
+    on their trust scores.
+    """
     def __init__(self, weights_adapter: Weights):
-        """
-        Initializes the TrustAwareRouter.
+        """Initializes the TrustAwareRouter.
 
         Args:
-            weights_adapter (Weights): The weights adapter to use.
+            weights_adapter: The weights adapter to use. This adapter should
+                provide `get_weights(role)` and `set_weights(role, weights)`
+                methods.
         """
         self.w = weights_adapter  # needs get_weights(role) -> Dict[candidate, weight] and set_weights(...)
 
     def apply_trust_modifier(self, role: str, candidate: str, trust_score: float, alpha: float = 0.2) -> Dict[str,float]:
-        """
-        Applies a trust modifier to the weights of a candidate.
+        """Applies a trust modifier to the weights of a candidate.
+
+        The trust modifier is determined by the trust tier of the candidate,
+        which is calculated from the trust score. The weights are then updated
+        using a learning rate `alpha`.
 
         Args:
-            role (str): The role to apply the modifier to.
-            candidate (str): The candidate to apply the modifier to.
-            trust_score (float): The trust score of the candidate.
-            alpha (float, optional): The learning rate. Defaults to 0.2.
+            role: The role to apply the modifier to.
+            candidate: The candidate to apply the modifier to.
+            trust_score: The trust score of the candidate.
+            alpha: The learning rate.
 
         Returns:
-            Dict[str,float]: The updated weights.
+            The updated weights.
         """
         tier = trust_tier(trust_score)
         modifier = {"A":1.1, "B":1.0, "C":0.8, "D":0.5}[tier]

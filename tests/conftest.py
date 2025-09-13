@@ -1,4 +1,13 @@
-"""Pytest configuration and shared fixtures."""
+"""
+Pytest Configuration and Shared Fixtures
+=========================================
+
+This file (`conftest.py`) is a special pytest file that allows defining
+fixtures, hooks, and plugins that are shared across multiple test files.
+The fixtures defined here provide reusable setup and teardown logic for
+tests, such as creating mock clients, setting up a test database, and
+providing sample data.
+"""
 
 import pytest
 import asyncio
@@ -15,7 +24,12 @@ from orchestrator.config import Settings
 
 @pytest.fixture(scope="session")
 def event_loop():
-    """Create an instance of the default event loop for the test session."""
+    """
+    Creates a new asyncio event loop for the entire test session.
+
+    This fixture ensures that asynchronous tests run in a clean event loop,
+    preventing interference between test runs.
+    """
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
@@ -23,7 +37,13 @@ def event_loop():
 
 @pytest.fixture
 def test_settings():
-    """Test configuration settings."""
+    """
+    Provides a `Settings` object with a test-specific configuration.
+
+    This fixture returns a configuration that points to in-memory services
+    and uses dummy API keys, ensuring that tests are isolated and do not
+    depend on external services or secrets.
+    """
     return Settings(
         database_url="sqlite:///:memory:",
         temporal_host="localhost",
@@ -39,7 +59,12 @@ def test_settings():
 
 @pytest.fixture
 def test_db_engine():
-    """Create test database engine."""
+    """
+    Creates an in-memory SQLite database engine for testing.
+
+    This fixture sets up a fresh, in-memory database for each test function,
+    ensuring a clean state and preventing data leakage between tests.
+    """
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -51,7 +76,12 @@ def test_db_engine():
 
 @pytest.fixture
 def test_db_session(test_db_engine):
-    """Create test database session."""
+    """
+    Creates and yields a new database session for a test.
+
+    This fixture provides a transactional scope around a test function.
+    The session is closed automatically after the test completes.
+    """
     TestingSessionLocal = sessionmaker(
         autocommit=False, autoflush=False, bind=test_db_engine
     )
@@ -64,7 +94,14 @@ def test_db_session(test_db_engine):
 
 @pytest.fixture
 def test_client(test_db_session):
-    """Create test client with dependency overrides."""
+    """
+    Creates a FastAPI `TestClient` with the database dependency overridden.
+
+    This fixture allows for making requests to the FastAPI application in tests
+    without needing a running server. It overrides the `get_db` dependency
+
+    to use the isolated, in-memory test database session.
+    """
     def override_get_db():
         try:
             yield test_db_session
@@ -79,7 +116,13 @@ def test_client(test_db_session):
 
 @pytest.fixture
 def mock_temporal_client():
-    """Mock Temporal client."""
+    """
+    Provides a mock `AsyncMock` for the Temporal client.
+
+    This allows testing of components that interact with Temporal without
+    requiring a live Temporal server. It returns a pre-configured mock
+    for `start_workflow`.
+    """
     mock = AsyncMock()
     mock.start_workflow = AsyncMock(return_value=Mock(id="test-workflow-id"))
     mock.get_workflow_handle = AsyncMock()
@@ -88,7 +131,12 @@ def mock_temporal_client():
 
 @pytest.fixture
 def mock_opa_client():
-    """Mock OPA client."""
+    """
+    Provides a mock `Mock` for the OPA (Open Policy Agent) client.
+
+    This fixture simulates the OPA client, allowing for predictable policy
+    evaluation results in tests.
+    """
     mock = Mock()
     mock.evaluate_policy = Mock(return_value={"result": True})
     return mock
@@ -96,7 +144,12 @@ def mock_opa_client():
 
 @pytest.fixture
 def mock_llm_client():
-    """Mock LLM client."""
+    """
+    Provides a mock `AsyncMock` for a generic LLM client.
+
+    This fixture is used to test interactions with Large Language Models
+    without making actual API calls, providing controlled responses and cost data.
+    """
     mock = AsyncMock()
     mock.generate = AsyncMock(return_value="Test response")
     mock.get_cost = Mock(return_value=0.01)
@@ -105,7 +158,12 @@ def mock_llm_client():
 
 @pytest.fixture
 def mock_mhe_client():
-    """Mock MHE client."""
+    """
+    Provides a mock `AsyncMock` for the MHE (Multi-Party Homomorphic
+    Encryption) client.
+
+    This allows for testing secure computation logic without a live MHE service.
+    """
     mock = AsyncMock()
     mock.encrypt = AsyncMock(return_value=b"encrypted_data")
     mock.decrypt = AsyncMock(return_value=b"decrypted_data")
@@ -115,7 +173,12 @@ def mock_mhe_client():
 
 @pytest.fixture
 def sample_submission():
-    """Sample submission data for testing."""
+    """
+    Provides a sample submission dictionary for use in tests.
+
+    This fixture offers a consistent, valid data structure for tests that
+    require submission data.
+    """
     return {
         "prompt": "Test prompt",
         "model": "gpt-3.5-turbo",
@@ -127,7 +190,12 @@ def sample_submission():
 
 @pytest.fixture
 def sample_policy():
-    """Sample policy data for testing."""
+    """
+    Provides a sample policy dictionary for use in tests.
+
+    This fixture offers a consistent, valid data structure for tests that
+    involve policy evaluation.
+    """
     return {
         "name": "test_policy",
         "rules": {

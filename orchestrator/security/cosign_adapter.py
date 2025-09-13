@@ -2,27 +2,29 @@ import subprocess, json, shlex
 from typing import Dict
 
 class CosignVerifier:
-    """A wrapper around the cosign CLI for verifying signatures and attestations."""
+    """A wrapper around the cosign CLI for verifying signatures and attestations.
+
+    This class provides methods for verifying blob signatures and attestations
+    using the cosign command-line tool.
+    """
     def __init__(self, cosign_bin: str = "cosign"):
-        """
-        Initializes the CosignVerifier.
+        """Initializes the CosignVerifier.
 
         Args:
-            cosign_bin (str, optional): The path to the cosign binary. Defaults to "cosign".
+            cosign_bin: The path to the cosign binary.
         """
         self.cosign_bin = cosign_bin
 
     def verify_blob(self, artifact_path: str, signature_path: str, public_key_path: str) -> Dict:
-        """
-        Verifies a blob signature.
+        """Verifies a blob signature.
 
         Args:
-            artifact_path (str): The path to the artifact to verify.
-            signature_path (str): The path to the signature file.
-            public_key_path (str): The path to the public key file.
+            artifact_path: The path to the artifact to verify.
+            signature_path: The path to the signature file.
+            public_key_path: The path to the public key file.
 
         Returns:
-            Dict: A dictionary containing the verification result.
+            A dictionary containing the verification result.
         """
         cmd = f"{self.cosign_bin} verify-blob --key {shlex.quote(public_key_path)} --signature {shlex.quote(signature_path)} {shlex.quote(artifact_path)} --output json"
         try:
@@ -33,15 +35,14 @@ class CosignVerifier:
             return {"ok": False, "error": e.output}
 
     def verify_attestation(self, image_ref: str, public_key_path: str) -> Dict:
-        """
-        Verifies an attestation.
+        """Verifies an attestation.
 
         Args:
-            image_ref (str): The image reference to verify.
-            public_key_path (str): The path to the public key file.
+            image_ref: The image reference to verify.
+            public_key_path: The path to the public key file.
 
         Returns:
-            Dict: A dictionary containing the verification result.
+            A dictionary containing the verification result.
         """
         cmd = f"{self.cosign_bin} verify-attestation --key {shlex.quote(public_key_path)} {shlex.quote(image_ref)} --output json"
         try:

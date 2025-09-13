@@ -5,7 +5,18 @@ import time
 
 @dataclass
 class RollbackPlan:
-    """Represents a plan for rolling back a capability."""
+    """Represents a plan for rolling back a capability.
+
+    Attributes:
+        capability_id: The ID of the capability to roll back.
+        reason: The reason for the rollback.
+        start_ts: The timestamp when the rollback started.
+        stages: The stages of the rollback, as a list of traffic percentages
+            to pull back.
+        interval_sec: The interval between stages in seconds.
+        current_stage: The current stage of the rollback.
+        active: Whether the rollback is active.
+    """
     capability_id: str
     reason: str
     start_ts: float = field(default_factory=time.time)
@@ -15,49 +26,54 @@ class RollbackPlan:
     active: bool = True
 
 class AutoRollbackController:
-    """Controls the automated rollback of capabilities."""
+    """Controls the automated rollback of capabilities.
+
+    This class provides methods for starting, getting the status of, and
+    advancing the stage of a rollback plan.
+    """
     def __init__(self):
         """Initializes the AutoRollbackController."""
         self.plans: Dict[str, RollbackPlan] = {}
 
     def start(self, capability_id: str, reason: str, stages=None, interval_sec: int = 120) -> RollbackPlan:
-        """
-        Starts a new rollback plan.
+        """Starts a new rollback plan.
 
         Args:
-            capability_id (str): The ID of the capability to roll back.
-            reason (str): The reason for the rollback.
-            stages (_type_, optional): The stages of the rollback. Defaults to None.
-            interval_sec (int, optional): The interval between stages in seconds. Defaults to 120.
+            capability_id: The ID of the capability to roll back.
+            reason: The reason for the rollback.
+            stages: The stages of the rollback. If not provided, it defaults
+                to [0.25, 0.50, 0.75, 1.0].
+            interval_sec: The interval between stages in seconds.
 
         Returns:
-            RollbackPlan: The created rollback plan.
+            The created rollback plan.
         """
         plan = RollbackPlan(capability_id, reason, stages=stages or [0.25,0.50,0.75,1.0], interval_sec=interval_sec)
         self.plans[capability_id] = plan
         return plan
 
     def status(self, capability_id: str) -> Optional[RollbackPlan]:
-        """
-        Gets the status of a rollback plan.
+        """Gets the status of a rollback plan.
 
         Args:
-            capability_id (str): The ID of the capability to get the status of.
+            capability_id: The ID of the capability to get the status of.
 
         Returns:
-            Optional[RollbackPlan]: The rollback plan, or None if not found.
+            The rollback plan, or None if not found.
         """
         return self.plans.get(capability_id)
 
     def tick(self, capability_id: str) -> Dict:
-        """
-        Moves a rollback plan to the next stage.
+        """Moves a rollback plan to the next stage.
+
+        This method advances the stage of a rollback plan based on the elapsed
+        time since the rollback started.
 
         Args:
-            capability_id (str): The ID of the capability to tick.
+            capability_id: The ID of the capability to tick.
 
         Returns:
-            Dict: A dictionary containing the status of the rollback plan.
+            A dictionary containing the status of the rollback plan.
         """
         plan = self.plans.get(capability_id)
         if not plan or not plan.active:

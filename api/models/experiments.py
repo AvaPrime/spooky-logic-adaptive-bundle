@@ -1,4 +1,9 @@
-"""Pydantic models for experiments API endpoints."""
+"""Pydantic models for experiments API endpoints.
+
+This module defines the Pydantic models used for request and response validation
+in the experiments API endpoints. These models ensure that the data flowing
+in and out of the API conforms to a specific schema.
+"""
 
 from pydantic import Field, validator
 from typing import Dict, Any, Optional, List
@@ -8,7 +13,14 @@ from .base import BaseAPIModel, MetricsModel, TimestampedModel
 
 
 class ExperimentArm(str, Enum):
-    """Standard experiment arms."""
+    """Enumeration of standard experiment arms.
+
+    Attributes:
+        CONTROL: The control group.
+        VARIANT: The variant group.
+        CONTROL_SINGLE_PASS: A specific control group for single-pass experiments.
+        VARIANT_DEBATE_TOOLS: A specific variant group for debate tools experiments.
+    """
     CONTROL = "control"
     VARIANT = "variant"
     CONTROL_SINGLE_PASS = "control_single_pass"
@@ -16,7 +28,15 @@ class ExperimentArm(str, Enum):
 
 
 class ExperimentStatus(str, Enum):
-    """Experiment status values."""
+    """Enumeration of possible experiment statuses.
+
+    Attributes:
+        DRAFT: The experiment is a draft.
+        ACTIVE: The experiment is active.
+        PAUSED: The experiment is paused.
+        COMPLETED: The experiment is completed.
+        CANCELLED: The experiment is cancelled.
+    """
     DRAFT = "draft"
     ACTIVE = "active"
     PAUSED = "paused"
@@ -25,7 +45,16 @@ class ExperimentStatus(str, Enum):
 
 
 class ExperimentRecordRequest(MetricsModel, TimestampedModel):
-    """Request model for recording experiment results."""
+    """Request model for recording an experiment result.
+
+    Attributes:
+        experiment: The identifier of the experiment.
+        arm: The identifier of the experiment arm.
+        session_id: The session identifier for grouping related records.
+        user_id: The user identifier.
+        metadata: Additional experiment metadata.
+        tags: Experiment tags for categorization.
+    """
     experiment: str = Field(
         ...,
         min_length=1,
@@ -60,6 +89,17 @@ class ExperimentRecordRequest(MetricsModel, TimestampedModel):
     
     @validator('arm')
     def validate_arm(cls, v):
+        """Validate the experiment arm.
+
+        Args:
+            v: The experiment arm.
+
+        Returns:
+            The validated experiment arm.
+
+        Raises:
+            ValueError: If the arm is empty.
+        """
         # Allow standard arms or custom arms
         v = v.strip().lower()
         if not v:
@@ -68,12 +108,31 @@ class ExperimentRecordRequest(MetricsModel, TimestampedModel):
     
     @validator('metadata')
     def validate_metadata(cls, v):
+        """Validate the metadata.
+
+        Args:
+            v: The metadata.
+
+        Returns:
+            The validated metadata.
+
+        Raises:
+            ValueError: If the metadata is too large.
+        """
         if v and len(str(v)) > 2000:  # Limit metadata size
             raise ValueError('Metadata too large (max 2KB when serialized)')
         return v
     
     @validator('tags')
     def validate_tags(cls, v):
+        """Validate the tags.
+
+        Args:
+            v: The list of tags.
+
+        Returns:
+            The validated list of tags.
+        """
         if v:
             # Clean and validate tags
             cleaned_tags = []
@@ -85,7 +144,14 @@ class ExperimentRecordRequest(MetricsModel, TimestampedModel):
 
 
 class ExperimentRecordResponse(BaseAPIModel):
-    """Response model for experiment recording."""
+    """Response model for recording an experiment result.
+
+    Attributes:
+        ok: Whether the recording was successful.
+        experiment: The identifier of the experiment.
+        record_id: The identifier of the recorded result.
+        total_records: The total number of records for this experiment.
+    """
     ok: bool = Field(True)
     experiment: str = Field(..., description="Experiment identifier")
     record_id: Optional[str] = Field(None, description="Record identifier")
@@ -93,7 +159,17 @@ class ExperimentRecordResponse(BaseAPIModel):
 
 
 class ExperimentSummaryRequest(BaseAPIModel):
-    """Request model for experiment summary."""
+    """Request model for retrieving an experiment summary.
+
+    Attributes:
+        experiment: The identifier of the experiment.
+        arm_a: The first arm to compare.
+        arm_b: The second arm to compare.
+        start_date: The start date for filtering results.
+        end_date: The end date for filtering results.
+        min_samples: The minimum number of samples required for statistical significance.
+        confidence_level: The confidence level for statistical tests.
+    """
     experiment: str = Field(
         ...,
         min_length=1,
@@ -135,6 +211,18 @@ class ExperimentSummaryRequest(BaseAPIModel):
     
     @validator('end_date')
     def validate_date_range(cls, v, values):
+        """Validate the date range.
+
+        Args:
+            v: The end date.
+            values: The other values in the model.
+
+        Returns:
+            The validated end date.
+
+        Raises:
+            ValueError: If the end date is before the start date.
+        """
         if v and 'start_date' in values and values['start_date']:
             if v <= values['start_date']:
                 raise ValueError('End date must be after start date')
@@ -142,7 +230,34 @@ class ExperimentSummaryRequest(BaseAPIModel):
 
 
 class ExperimentSummaryResponse(BaseAPIModel):
-    """Response model for experiment summary."""
+    """Response model for an experiment summary.
+
+    Attributes:
+        ready: Whether the summary is ready (i.e., enough data).
+        experiment: The identifier of the experiment.
+        arm_a: The first arm.
+        arm_b: The second arm.
+        samples_a: The number of samples for arm A.
+        samples_b: The number of samples for arm B.
+        score_a: The average score for arm A.
+        score_b: The average score for arm B.
+        score_improvement: The score improvement of B over A.
+        cost_a: The average cost for arm A.
+        cost_b: The average cost for arm B.
+        cost_improvement: The cost improvement of B over A.
+        latency_a: The average latency for arm A.
+        latency_b: The average latency for arm B.
+        latency_improvement: The latency improvement of B over A.
+        score_p_value: The p-value for the score difference.
+        cost_p_value: The p-value for the cost difference.
+        latency_p_value: The p-value for the latency difference.
+        statistically_significant: Whether the results are statistically significant.
+        confidence_interval: The confidence intervals for the metrics.
+        recommendation: The recommendation based on the results.
+        winner: The winning arm if the results are significant.
+        analysis_date: The date of the analysis.
+        data_quality_score: The data quality assessment score.
+    """
     ready: bool = Field(..., description="Whether summary is ready (enough data)")
     experiment: str = Field(..., description="Experiment identifier")
     arm_a: str = Field(..., description="First arm")
@@ -183,7 +298,17 @@ class ExperimentSummaryResponse(BaseAPIModel):
 
 
 class ExperimentConfigRequest(BaseAPIModel):
-    """Request model for experiment configuration."""
+    """Request model for configuring an experiment.
+
+    Attributes:
+        experiment: The identifier of the experiment.
+        description: The description of the experiment.
+        arms: The list of experiment arms.
+        traffic_allocation: The traffic allocation per arm.
+        success_metrics: The primary success metrics.
+        minimum_sample_size: The minimum sample size per arm.
+        max_duration_days: The maximum duration of the experiment in days.
+    """
     experiment: str = Field(
         ...,
         min_length=1,
@@ -225,12 +350,35 @@ class ExperimentConfigRequest(BaseAPIModel):
     
     @validator('arms')
     def validate_arms(cls, v):
+        """Validate the experiment arms.
+
+        Args:
+            v: The list of experiment arms.
+
+        Returns:
+            The validated list of experiment arms.
+
+        Raises:
+            ValueError: If the arms are not unique.
+        """
         if len(set(v)) != len(v):
             raise ValueError('Experiment arms must be unique')
         return v
     
     @validator('traffic_allocation')
     def validate_traffic_allocation(cls, v, values):
+        """Validate the traffic allocation.
+
+        Args:
+            v: The traffic allocation dictionary.
+            values: The other values in the model.
+
+        Returns:
+            The validated traffic allocation dictionary.
+
+        Raises:
+            ValueError: If the traffic allocation is invalid.
+        """
         if v:
             if 'arms' in values:
                 # Check that all arms have allocation
@@ -252,7 +400,16 @@ class ExperimentConfigRequest(BaseAPIModel):
 
 
 class ExperimentConfigResponse(BaseAPIModel):
-    """Response model for experiment configuration."""
+    """Response model for configuring an experiment.
+
+    Attributes:
+        experiment: The identifier of the experiment.
+        status: The configuration status.
+        config_id: The identifier of the configuration.
+        message: The status message.
+        arms_configured: The list of successfully configured arms.
+        created_at: The timestamp of the configuration.
+    """
     experiment: str = Field(..., description="Experiment identifier")
     status: str = Field(..., description="Configuration status")
     config_id: Optional[str] = Field(None, description="Configuration identifier")

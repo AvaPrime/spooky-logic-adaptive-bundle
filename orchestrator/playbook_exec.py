@@ -5,17 +5,20 @@ from orchestrator.playbooks import load_playbook
 from orchestrator.clients.router import Router
 
 async def run_playbook(name: str, goal: str, budget: float, risk: int) -> dict:
-    """
-    Runs a playbook.
+    """Runs a playbook.
+
+    This function loads and runs a playbook with the given parameters. It uses
+    the LLM and MHE clients to execute the steps in the playbook and then
+    records metrics on the execution.
 
     Args:
-        name (str): The name of the playbook to run.
-        goal (str): The goal to achieve.
-        budget (float): The budget for the playbook.
-        risk (int): The risk level for the playbook.
+        name: The name of the playbook to run.
+        goal: The goal to achieve.
+        budget: The budget for the playbook.
+        risk: The risk level for the playbook.
 
     Returns:
-        dict: A dictionary containing the result of the playbook execution.
+        A dictionary containing the result of the playbook execution.
     """
     pb = load_playbook(name)
     t0 = time.perf_counter()

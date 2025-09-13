@@ -18,7 +18,18 @@ EXPERIMENTS = []
 
 @router.post("/record", response_model=ExperimentRecordResponse)
 async def record_experiment(record: ExperimentRecordRequest):
-    """Record an experiment result"""
+    """Record an experiment result.
+
+    This endpoint records the result of an experiment, including the arm, outcome,
+    and metadata.
+
+    Args:
+        record (ExperimentRecordRequest): The request body containing the experiment
+            result to record.
+
+    Returns:
+        ExperimentRecordResponse: The response containing the status of the recording.
+    """
     try:
         # Find or create experiment
         experiment = None
@@ -72,7 +83,17 @@ async def record_experiment(record: ExperimentRecordRequest):
 
 @router.get("/results/{experiment_name}", response_model=ExperimentSummaryResponse)
 async def get_results(experiment_name: str):
-    """Get results for a specific experiment"""
+    """Get results for a specific experiment.
+
+    This endpoint returns the results and statistics for a given experiment.
+
+    Args:
+        experiment_name (str): The name of the experiment to get results for.
+
+    Returns:
+        ExperimentSummaryResponse: The response containing the experiment results and
+            statistics.
+    """
     try:
         experiment = None
         for exp in EXPERIMENTS:
@@ -116,7 +137,18 @@ async def get_results(experiment_name: str):
 
 @router.post("/analyze", response_model=ExperimentConfigResponse)
 async def analyze_experiment(analysis: ExperimentConfigRequest):
-    """Perform statistical analysis on experiment results"""
+    """Perform statistical analysis on experiment results.
+
+    This endpoint performs a statistical analysis of the results for a given
+    experiment.
+
+    Args:
+        analysis (ExperimentConfigRequest): The request body containing the experiment
+            to analyze and the analysis parameters.
+
+    Returns:
+        ExperimentConfigResponse: The response containing the analysis results.
+    """
     try:
         experiment = None
         for exp in EXPERIMENTS:

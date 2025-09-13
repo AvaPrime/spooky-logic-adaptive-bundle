@@ -3,19 +3,22 @@ import random, math
 from typing import List, Dict, Tuple
 
 def stratified_bootstrap_uplift(scores_a: List[float], scores_b: List[float], strata: List[int], iters: int = 1000) -> Dict:
-    """
-    Estimate uplift distribution via bootstrap stratified by 'strata' (e.g., task domain ids).
+    """Estimates the uplift distribution using a stratified bootstrap.
 
-    This is a lightweight stand-in for full DoWhy.
+    This function provides a lightweight stand-in for a full causal inference
+    library like DoWhy. It estimates the uplift of arm B over arm A by
+    stratifying the data by the given strata (e.g., task domain IDs) and
+    then performing a bootstrap analysis.
 
     Args:
-        scores_a (List[float]): The scores for the first arm.
-        scores_b (List[float]): The scores for the second arm.
-        strata (List[int]): The strata for each score.
-        iters (int, optional): The number of iterations to run. Defaults to 1000.
+        scores_a: The scores for the first arm (A).
+        scores_b: The scores for the second arm (B).
+        strata: The strata for each score.
+        iters: The number of bootstrap iterations to run.
 
     Returns:
-        Dict: A dictionary containing the mean uplift and 95% confidence interval.
+        A dictionary containing the mean uplift and the 95% confidence
+        interval.
     """
     rng = random.Random(1337)
     by_stratum_a = {}

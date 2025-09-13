@@ -1,4 +1,9 @@
-"""Pydantic models for supply chain API endpoints."""
+"""Pydantic models for supply chain API endpoints.
+
+This module defines the Pydantic models used for request and response validation
+in the supply chain API endpoints. These models ensure that the data flowing
+in and out of the API conforms to a specific schema.
+"""
 
 from pydantic import Field, validator, HttpUrl
 from typing import Dict, Any, Optional, List, Union
@@ -9,7 +14,15 @@ import re
 
 
 class RiskLevel(str, Enum):
-    """Supply chain risk levels."""
+    """Enumeration of supply chain risk levels.
+
+    Attributes:
+        CRITICAL: Critical risk level.
+        HIGH: High risk level.
+        MEDIUM: Medium risk level.
+        LOW: Low risk level.
+        MINIMAL: Minimal risk level.
+    """
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -18,7 +31,18 @@ class RiskLevel(str, Enum):
 
 
 class ComponentType(str, Enum):
-    """Supply chain component types."""
+    """Enumeration of supply chain component types.
+
+    Attributes:
+        LIBRARY: A library or package.
+        FRAMEWORK: A software framework.
+        TOOL: A command-line tool or utility.
+        SERVICE: An external service.
+        CONTAINER: A container image.
+        BINARY: A binary executable.
+        CONFIGURATION: A configuration file.
+        DATA: A data file.
+    """
     LIBRARY = "library"
     FRAMEWORK = "framework"
     TOOL = "tool"
@@ -30,7 +54,15 @@ class ComponentType(str, Enum):
 
 
 class VulnerabilitySeverity(str, Enum):
-    """Vulnerability severity levels."""
+    """Enumeration of vulnerability severity levels.
+
+    Attributes:
+        CRITICAL: Critical severity.
+        HIGH: High severity.
+        MEDIUM: Medium severity.
+        LOW: Low severity.
+        INFO: Informational severity.
+    """
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -39,7 +71,16 @@ class VulnerabilitySeverity(str, Enum):
 
 
 class LicenseRisk(str, Enum):
-    """License risk categories."""
+    """Enumeration of license risk categories.
+
+    Attributes:
+        COPYLEFT_STRONG: Strong copyleft licenses (e.g., GPL, AGPL).
+        COPYLEFT_WEAK: Weak copyleft licenses (e.g., LGPL, MPL).
+        PERMISSIVE: Permissive licenses (e.g., MIT, Apache, BSD).
+        PROPRIETARY: Proprietary or commercial licenses.
+        UNKNOWN: Unidentified or unknown licenses.
+        DUAL: Dual-licensed.
+    """
     COPYLEFT_STRONG = "copyleft_strong"  # GPL, AGPL
     COPYLEFT_WEAK = "copyleft_weak"      # LGPL, MPL
     PERMISSIVE = "permissive"            # MIT, Apache, BSD
@@ -49,7 +90,20 @@ class LicenseRisk(str, Enum):
 
 
 class SupplyChainComponent(BaseAPIModel):
-    """Supply chain component information."""
+    """A component in a software supply chain.
+
+    Attributes:
+        name: The name of the component.
+        version: The version of the component.
+        component_type: The type of the component.
+        source: The source repository or registry of the component.
+        homepage: The URL of the component's homepage.
+        license: The license identifier of the component.
+        license_risk: The license risk category of the component.
+        checksum: The checksum of the component.
+        size_bytes: The size of the component in bytes.
+        dependencies: A list of direct dependencies of the component.
+    """
     name: str = Field(
         ...,
         min_length=1,
@@ -101,6 +155,17 @@ class SupplyChainComponent(BaseAPIModel):
     
     @validator('checksum')
     def validate_checksum(cls, v):
+        """Validate the checksum.
+
+        Args:
+            v: The checksum string.
+
+        Returns:
+            The validated checksum string.
+
+        Raises:
+            ValueError: If the checksum format is invalid.
+        """
         if v:
             # Support common hash formats
             if re.match(r'^[a-fA-F0-9]{32}$', v):  # MD5
@@ -117,7 +182,18 @@ class SupplyChainComponent(BaseAPIModel):
 
 
 class Vulnerability(BaseAPIModel):
-    """Vulnerability information."""
+    """Information about a vulnerability.
+
+    Attributes:
+        id: The identifier of the vulnerability (e.g., CVE).
+        severity: The severity of the vulnerability.
+        score: The CVSS or similar vulnerability score.
+        description: A description of the vulnerability.
+        published_date: The date the vulnerability was published.
+        fixed_version: The version that fixes this vulnerability.
+        references: A list of reference URLs for more information.
+        exploitable: Whether the vulnerability is actively exploitable.
+    """
     id: str = Field(
         ...,
         min_length=1,
@@ -161,6 +237,14 @@ class Vulnerability(BaseAPIModel):
     
     @validator('id')
     def validate_vulnerability_id(cls, v):
+        """Validate the vulnerability ID.
+
+        Args:
+            v: The vulnerability ID string.
+
+        Returns:
+            The validated vulnerability ID string.
+        """
         # Common vulnerability ID formats
         if re.match(r'^CVE-\d{4}-\d{4,}$', v.upper()):
             return v.upper()
@@ -172,7 +256,21 @@ class Vulnerability(BaseAPIModel):
 
 
 class SupplyChainScoreRequest(TimestampedModel):
-    """Request model for supply chain scoring."""
+    """Request model for calculating a supply chain score.
+
+    Attributes:
+        components: A list of components to analyze.
+        project_name: The name of the project for context.
+        project_version: The version of the project.
+        environment: The target environment (e.g., prod, staging, dev).
+        include_transitive: Whether to include transitive dependency analysis.
+        vulnerability_scan: Whether to perform vulnerability scanning.
+        license_analysis: Whether to perform license risk analysis.
+        malware_scan: Whether to perform malware scanning.
+        supply_chain_attacks: Whether to check for supply chain attack indicators.
+        policy_checks: A list of custom policy checks to perform.
+        baseline_score: A baseline score for comparison.
+    """
     components: List[SupplyChainComponent] = Field(
         ...,
         min_items=1,
@@ -229,6 +327,17 @@ class SupplyChainScoreRequest(TimestampedModel):
     
     @validator('components')
     def validate_components(cls, v):
+        """Validate the list of components.
+
+        Args:
+            v: The list of components.
+
+        Returns:
+            The validated list of components.
+
+        Raises:
+            ValueError: If the list is empty or contains duplicates.
+        """
         if not v:
             raise ValueError('At least one component must be provided')
         
@@ -244,6 +353,17 @@ class SupplyChainScoreRequest(TimestampedModel):
     
     @validator('policy_checks')
     def validate_policy_checks(cls, v):
+        """Validate the policy checks.
+
+        Args:
+            v: The list of policy checks.
+
+        Returns:
+            The validated list of policy checks.
+
+        Raises:
+            ValueError: If any of the policy checks are invalid.
+        """
         if v:
             valid_policies = [
                 'no_critical_vulns', 'no_high_vulns', 'license_whitelist',
@@ -258,7 +378,25 @@ class SupplyChainScoreRequest(TimestampedModel):
 
 
 class ComponentScore(BaseAPIModel):
-    """Individual component score details."""
+    """The score details for an individual component.
+
+    Attributes:
+        component: The component information.
+        overall_score: The overall score of the component (0-100).
+        risk_level: The overall risk level of the component.
+        vulnerability_score: The vulnerability score of the component.
+        license_score: The license compliance score of the component.
+        maintenance_score: The maintenance and activity score of the component.
+        popularity_score: The popularity and adoption score of the component.
+        vulnerabilities: A list of identified vulnerabilities.
+        license_issues: A list of license-related issues.
+        policy_violations: A list of policy violations.
+        warnings: A list of general warnings.
+        last_updated: The timestamp when the component was last updated.
+        maintainers: The number of active maintainers.
+        downloads: The download count (if available).
+        age_days: The age of the component in days.
+    """
     component: SupplyChainComponent = Field(..., description="Component information")
     overall_score: float = Field(
         ...,
@@ -335,7 +473,30 @@ class ComponentScore(BaseAPIModel):
 
 
 class SupplyChainScoreResponse(BaseAPIModel):
-    """Response model for supply chain scoring."""
+    """Response model for a supply chain score calculation.
+
+    Attributes:
+        overall_score: The overall supply chain score (0-100).
+        risk_level: The overall risk level.
+        total_components: The total number of components analyzed.
+        critical_issues: The number of critical issues.
+        high_issues: The number of high-severity issues.
+        medium_issues: The number of medium-severity issues.
+        low_issues: The number of low-severity issues.
+        vulnerability_score: The aggregate vulnerability score.
+        license_score: The aggregate license compliance score.
+        maintenance_score: The aggregate maintenance score.
+        component_scores: The individual component scores.
+        top_vulnerabilities: The most critical vulnerabilities found.
+        policy_violations: The policy violations found.
+        recommendations: Recommendations for improvement.
+        analysis_timestamp: The timestamp when the analysis was performed.
+        analysis_duration_ms: The analysis execution time in milliseconds.
+        data_sources: The data sources used for the analysis.
+        baseline_comparison: A comparison with the baseline score.
+        risk_distribution: The distribution of components by risk level.
+        license_distribution: The distribution of licenses found.
+    """
     overall_score: float = Field(
         ...,
         ge=0.0,
@@ -426,7 +587,17 @@ class SupplyChainScoreResponse(BaseAPIModel):
 
 
 class SupplyChainMonitorRequest(BaseAPIModel):
-    """Request model for continuous supply chain monitoring."""
+    """Request model for setting up continuous supply chain monitoring.
+
+    Attributes:
+        project_id: The identifier of the project to monitor.
+        components: The components to monitor.
+        monitoring_frequency: The frequency of monitoring.
+        alert_thresholds: Custom alert thresholds.
+        notification_channels: Notification channels for alerts.
+        auto_update_minor: Whether to auto-update minor versions.
+        auto_update_patch: Whether to auto-update patch versions.
+    """
     project_id: str = Field(
         ...,
         min_length=1,
@@ -462,7 +633,17 @@ class SupplyChainMonitorRequest(BaseAPIModel):
 
 
 class SupplyChainMonitorResponse(BaseAPIModel):
-    """Response model for supply chain monitoring setup."""
+    """Response model for setting up supply chain monitoring.
+
+    Attributes:
+        monitor_id: The ID of the monitoring session.
+        project_id: The ID of the project being monitored.
+        components_count: The number of components being monitored.
+        monitoring_frequency: The frequency of monitoring.
+        next_scan_at: The timestamp of the next scheduled scan.
+        created_at: The timestamp when the monitoring was set up.
+        status: The status of the monitoring.
+    """
     monitor_id: str = Field(..., description="Monitoring session ID")
     project_id: str = Field(..., description="Project being monitored")
     components_count: int = Field(..., ge=0, description="Number of components monitored")
@@ -473,7 +654,16 @@ class SupplyChainMonitorResponse(BaseAPIModel):
 
 
 class SupplyChainReportRequest(BaseAPIModel):
-    """Request model for supply chain reports."""
+    """Request model for generating a supply chain report.
+
+    Attributes:
+        project_id: Filter by project ID.
+        date_from: The start date for the report.
+        date_to: The end date for the report.
+        report_type: The type of report to generate.
+        format: The output format of the report.
+        include_recommendations: Whether to include recommendations in the report.
+    """
     project_id: Optional[str] = Field(
         None,
         description="Filter by project ID"
@@ -503,7 +693,18 @@ class SupplyChainReportRequest(BaseAPIModel):
 
 
 class SupplyChainReportResponse(BaseAPIModel):
-    """Response model for supply chain reports."""
+    """Response model for a supply chain report.
+
+    Attributes:
+        report_id: The ID of the generated report.
+        report_type: The type of the report.
+        format: The format of the report.
+        generated_at: The timestamp when the report was generated.
+        download_url: The URL to download the report.
+        expires_at: The timestamp when the download expires.
+        size_bytes: The size of the report in bytes.
+        summary: A summary of the report statistics.
+    """
     report_id: str = Field(..., description="Generated report ID")
     report_type: str = Field(..., description="Report type")
     format: str = Field(..., description="Report format")
@@ -518,7 +719,16 @@ class SupplyChainReportResponse(BaseAPIModel):
 
 
 class SupplyChainValidateRequest(BaseAPIModel):
-    """Request model for supply chain validation."""
+    """Request model for validating a supply chain.
+
+    Attributes:
+        project_id: The ID of the project to validate.
+        component_path: The specific component path to validate.
+        validation_type: The type of validation to perform.
+        include_transitive: Whether to include transitive dependencies.
+        policy_profile: The policy profile to use for validation.
+        fail_on_critical: Whether to fail validation on critical issues.
+    """
     project_id: str = Field(..., description="Project ID to validate")
     component_path: Optional[str] = Field(
         None,
@@ -544,7 +754,24 @@ class SupplyChainValidateRequest(BaseAPIModel):
 
 
 class SupplyChainValidateResponse(BaseAPIModel):
-    """Response model for supply chain validation."""
+    """Response model for a supply chain validation.
+
+    Attributes:
+        validation_id: The ID of the validation session.
+        project_id: The ID of the validated project.
+        validation_type: The type of validation performed.
+        status: The validation status.
+        passed: Whether the validation passed.
+        issues_found: The number of issues found.
+        critical_issues: The number of critical issues.
+        high_issues: The number of high-severity issues.
+        medium_issues: The number of medium-severity issues.
+        low_issues: The number of low-severity issues.
+        validated_at: The timestamp when the validation was performed.
+        validation_duration: The validation duration in seconds.
+        report_url: The URL to the detailed validation report.
+        recommendations: A list of validation recommendations.
+    """
     validation_id: str = Field(..., description="Validation session ID")
     project_id: str = Field(..., description="Validated project ID")
     validation_type: str = Field(..., description="Type of validation performed")
@@ -571,7 +798,15 @@ class SupplyChainValidateResponse(BaseAPIModel):
 
 
 class SupplyChainAuditRequest(BaseAPIModel):
-    """Request model for supply chain audit."""
+    """Request model for a supply chain audit.
+
+    Attributes:
+        project_id: The ID of the project to audit.
+        audit_scope: The scope of the audit.
+        include_historical: Whether to include historical audit data.
+        compliance_frameworks: A list of compliance frameworks to check against.
+        audit_depth: The depth of the audit analysis.
+    """
     project_id: str = Field(..., description="Project ID to audit")
     audit_scope: str = Field(
         default="full",
@@ -594,7 +829,23 @@ class SupplyChainAuditRequest(BaseAPIModel):
 
 
 class SupplyChainAuditResponse(BaseAPIModel):
-    """Response model for supply chain audit."""
+    """Response model for a supply chain audit.
+
+    Attributes:
+        audit_id: The ID of the audit session.
+        project_id: The ID of the audited project.
+        audit_scope: The scope of the audit performed.
+        status: The audit status.
+        compliance_score: The overall compliance score.
+        security_score: The security score.
+        license_compliance: The license compliance score.
+        findings_count: The total number of findings.
+        critical_findings: The number of critical findings.
+        audited_at: The timestamp when the audit was performed.
+        audit_duration: The audit duration in seconds.
+        report_url: The URL to the detailed audit report.
+        next_audit_recommended: The recommended date for the next audit.
+    """
     audit_id: str = Field(..., description="Audit session ID")
     project_id: str = Field(..., description="Audited project ID")
     audit_scope: str = Field(..., description="Scope of audit performed")

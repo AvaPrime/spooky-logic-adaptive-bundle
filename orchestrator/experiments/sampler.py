@@ -2,36 +2,43 @@ import random, math
 from typing import Dict, List
 
 class DomainDifficultySampler:
-    """A sampler that determines the number of required samples based on domain difficulty."""
+    """A sampler that determines the number of required samples based on domain
+    difficulty.
+
+    This class uses the historical accuracy of a domain to determine the
+    number of samples required for that domain. The more variance in the
+    accuracy, the more samples are required.
+    """
     def __init__(self, base_n: int = 20):
-        """
-        Initializes the DomainDifficultySampler.
+        """Initializes the DomainDifficultySampler.
 
         Args:
-            base_n (int, optional): The base number of samples required. Defaults to 20.
+            base_n: The base number of samples required.
         """
         self.base_n = base_n
         self._history = {}  # domain -> accuracy history
 
     def record(self, domain: str, score: float):
-        """
-        Records the score for a given domain.
+        """Records the score for a given domain.
 
         Args:
-            domain (str): The domain to record the score for.
-            score (float): The score to record.
+            domain: The domain to record the score for.
+            score: The score to record.
         """
         self._history.setdefault(domain, []).append(score)
 
     def required_samples(self, domain: str) -> int:
-        """
-        Determines the number of required samples for a given domain.
+        """Determines the number of required samples for a given domain.
+
+        The number of required samples is determined by the historical variance
+        of the domain's accuracy. More variance means more samples are
+        required.
 
         Args:
-            domain (str): The domain to determine the number of samples for.
+            domain: The domain to determine the number of samples for.
 
         Returns:
-            int: The number of required samples.
+            The number of required samples.
         """
         hist = self._history.get(domain, [])
         if not hist:
