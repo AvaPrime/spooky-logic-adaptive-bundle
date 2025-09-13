@@ -1,18 +1,21 @@
 from typing import Dict
 
 def supply_chain_score(sbom_ok: bool, provenance_ok: bool, cosign_ok: bool, rekor_ok: bool, max_vuln_severity: str) -> float:
-    """
-    Calculates the supply chain score for a capability.
+    """Calculates the supply chain score for a capability.
+
+    This function calculates a supply chain score based on a number of factors,
+    including the validity of the SBOM, provenance, cosign signature, and Rekor
+    entry, as well as the maximum vulnerability severity.
 
     Args:
-        sbom_ok (bool): Whether the SBOM is valid.
-        provenance_ok (bool): Whether the provenance is valid.
-        cosign_ok (bool): Whether the cosign signature is valid.
-        rekor_ok (bool): Whether the rekor entry is valid.
-        max_vuln_severity (str): The maximum vulnerability severity.
+        sbom_ok: Whether the SBOM is valid.
+        provenance_ok: Whether the provenance is valid.
+        cosign_ok: Whether the cosign signature is valid.
+        rekor_ok: Whether the Rekor entry is valid.
+        max_vuln_severity: The maximum vulnerability severity.
 
     Returns:
-        float: The calculated supply chain score.
+        The calculated supply chain score.
     """
     # naive scoring: each OK adds points, severity subtracts
     score = 0.0
@@ -25,14 +28,13 @@ def supply_chain_score(sbom_ok: bool, provenance_ok: bool, cosign_ok: bool, reko
     return round(score, 3)
 
 def trust_tier(score: float) -> str:
-    """
-    Determines the trust tier for a given score.
+    """Determines the trust tier for a given score.
 
     Args:
-        score (float): The score to determine the trust tier for.
+        score: The score to determine the trust tier for.
 
     Returns:
-        str: The trust tier.
+        The trust tier, which is one of "A", "B", "C", or "D".
     """
     if score >= 0.85: return "A"
     if score >= 0.70: return "B"

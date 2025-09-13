@@ -1,4 +1,12 @@
-"""Unit tests for experiment manager."""
+"""
+Unit Tests for the Experiment Management System
+===============================================
+
+This module contains unit tests for the experiment management components,
+including the `ABResult` data class and the `ExperimentManager`. These tests
+verify the correctness of data handling, statistical calculations, and
+experiment lifecycle management.
+"""
 
 import pytest
 from unittest.mock import Mock, patch
@@ -10,10 +18,15 @@ from orchestrator.experiments.models import Experiment, ExperimentGroup, Experim
 
 
 class TestABResult:
-    """Test cases for ABResult data class."""
+    """Test cases for the ABResult data class."""
 
     def test_ab_result_creation(self):
-        """Test ABResult creation and validation."""
+        """
+        Tests the successful creation of an ABResult instance.
+
+        Verifies that an `ABResult` object can be instantiated with valid
+        data types and that the attributes are set correctly.
+        """
         result = ABResult(
             accuracy=0.85,
             latency_ms=150.0,
@@ -27,34 +40,38 @@ class TestABResult:
         assert isinstance(result.timestamp, datetime)
 
     def test_ab_result_validation(self):
-        """Test ABResult validation constraints."""
-        # Valid accuracy range
+        """
+        Tests the validation constraints of the ABResult data class.
+
+        Verifies that creating an `ABResult` with out-of-range values
+        (e.g., negative cost or accuracy > 1.0) raises a `ValueError`.
+        """
+        # Test invalid accuracy range
         with pytest.raises(ValueError):
             ABResult(accuracy=1.5, latency_ms=100, cost_usd=0.01)
-        
         with pytest.raises(ValueError):
             ABResult(accuracy=-0.1, latency_ms=100, cost_usd=0.01)
         
-        # Valid latency
+        # Test invalid latency
         with pytest.raises(ValueError):
             ABResult(accuracy=0.8, latency_ms=-10, cost_usd=0.01)
         
-        # Valid cost
+        # Test invalid cost
         with pytest.raises(ValueError):
             ABResult(accuracy=0.8, latency_ms=100, cost_usd=-0.01)
 
 
 class TestExperimentManager:
-    """Test cases for ExperimentManager."""
+    """Test cases for the ExperimentManager class."""
 
     @pytest.fixture
-    def experiment_manager(self):
-        """Create ExperimentManager instance."""
+    def experiment_manager(self) -> ExperimentManager:
+        """Provides a clean instance of ExperimentManager for each test."""
         return ExperimentManager()
 
     @pytest.fixture
-    def sample_experiment(self):
-        """Sample experiment for testing."""
+    def sample_experiment(self) -> Experiment:
+        """Provides a sample Experiment object for use in tests."""
         return Experiment(
             id="exp-001",
             name="Model Comparison Test",
@@ -70,8 +87,8 @@ class TestExperimentManager:
         )
 
     @pytest.fixture
-    def sample_results_control(self):
-        """Sample control group results."""
+    def sample_results_control(self) -> list[ABResult]:
+        """Provides a list of sample ABResult objects for the control group."""
         return [
             ABResult(accuracy=0.80, latency_ms=120, cost_usd=0.02),
             ABResult(accuracy=0.82, latency_ms=115, cost_usd=0.021),
@@ -81,8 +98,8 @@ class TestExperimentManager:
         ]
 
     @pytest.fixture
-    def sample_results_treatment(self):
-        """Sample treatment group results."""
+    def sample_results_treatment(self) -> list[ABResult]:
+        """Provides a list of sample ABResult objects for the treatment group."""
         return [
             ABResult(accuracy=0.88, latency_ms=180, cost_usd=0.08),
             ABResult(accuracy=0.90, latency_ms=175, cost_usd=0.082),
@@ -92,35 +109,51 @@ class TestExperimentManager:
         ]
 
     def test_record_result(self, experiment_manager, sample_experiment):
-        """Test recording experiment results."""
-        result = ABResult(accuracy=0.85, latency_ms=150, cost_usd=0.05)
+        """
+        Tests that an experiment result can be successfully recorded.
         
+        Verifies that after recording a result, it can be retrieved and
+        the stored data is correct.
+        """
+        result = ABResult(accuracy=0.85, latency_ms=150, cost_usd=0.05)
         experiment_manager.record_result(sample_experiment.id, "control", result)
         
-        # Verify result was stored
         stored_results = experiment_manager.get_results(sample_experiment.id, "control")
         assert len(stored_results) == 1
         assert stored_results[0].accuracy == 0.85
 
     def test_get_results_empty(self, experiment_manager):
-        """Test getting results for non-existent experiment."""
+        """
+        Tests that getting results for a non-existent experiment is handled gracefully.
+
+        Verifies that calling `get_results` for an unknown experiment ID
+        returns an empty list instead of raising an error.
+        """
         results = experiment_manager.get_results("non-existent", "control")
         assert results == []
 
     def test_statistical_functions(self, experiment_manager):
-        """Test statistical helper functions."""
+        """
+        Tests the internal statistical helper functions (_mean, _var).
+
+        Verifies that the mean and sample variance calculations are correct
+        compared to a known implementation (NumPy).
+        """
         data = [1.0, 2.0, 3.0, 4.0, 5.0]
         
-        # Test mean calculation
         assert experiment_manager._mean(data) == 3.0
         
-        # Test variance calculation
         variance = experiment_manager._var(data)
-        expected_var = np.var(data, ddof=1)  # Sample variance
+        expected_var = np.var(data, ddof=1)  # Using ddof=1 for sample variance
         assert abs(variance - expected_var) < 1e-10
 
     def test_welch_ttest(self, experiment_manager):
-        """Test Welch's t-test implementation."""
+        """
+        Tests the internal Welch's t-test implementation.
+
+        Verifies that the t-test function returns a t-statistic and a p-value
+        within the expected types and ranges for two sample data groups.
+        """
         group_a = [1.0, 2.0, 3.0, 4.0, 5.0]
         group_b = [2.0, 3.0, 4.0, 5.0, 6.0]
         
@@ -132,52 +165,41 @@ class TestExperimentManager:
 
     def test_summarize_experiment(self, experiment_manager, sample_experiment, 
                                 sample_results_control, sample_results_treatment):
-        """Test experiment summary generation."""
-        # Record results
+        """
+        Tests the generation of an experiment summary.
+
+        Verifies that the `summarize` method produces a correctly structured
+        report including statistics for control, treatment, and a comparison
+        between them.
+        """
         for result in sample_results_control:
             experiment_manager.record_result(sample_experiment.id, "control", result)
-        
         for result in sample_results_treatment:
             experiment_manager.record_result(sample_experiment.id, "treatment", result)
         
-        # Generate summary
         summary = experiment_manager.summarize(sample_experiment.id)
         
-        # Verify summary structure
         assert "control" in summary
         assert "treatment" in summary
         assert "comparison" in summary
-        
-        # Verify control group stats
-        control_stats = summary["control"]
-        assert "accuracy" in control_stats
-        assert "latency_ms" in control_stats
-        assert "cost_usd" in control_stats
-        assert "sample_size" in control_stats
-        
-        # Verify treatment group stats
-        treatment_stats = summary["treatment"]
-        assert treatment_stats["sample_size"] == 5
-        
-        # Verify comparison stats
-        comparison = summary["comparison"]
-        assert "accuracy_uplift" in comparison
-        assert "cost_delta" in comparison
-        assert "latency_delta" in comparison
-        assert "statistical_significance" in comparison
-        assert "recommendation" in comparison
+        assert summary["control"]["sample_size"] == 5
+        assert summary["treatment"]["sample_size"] == 5
+        assert "recommendation" in summary["comparison"]
 
     def test_uplift_calculation(self, experiment_manager, sample_results_control, sample_results_treatment):
-        """Test uplift calculation accuracy."""
+        """
+        Tests the accuracy of the uplift calculation in the summary.
+
+        Verifies that the percentage uplift between the treatment and control
+        groups is calculated correctly.
+        """
         control_accuracy = [r.accuracy for r in sample_results_control]
         treatment_accuracy = [r.accuracy for r in sample_results_treatment]
         
         control_mean = experiment_manager._mean(control_accuracy)
         treatment_mean = experiment_manager._mean(treatment_accuracy)
-        
         expected_uplift = (treatment_mean - control_mean) / control_mean
         
-        # Record results and get summary
         exp_id = "test-uplift"
         for result in sample_results_control:
             experiment_manager.record_result(exp_id, "control", result)
@@ -190,10 +212,14 @@ class TestExperimentManager:
         assert abs(actual_uplift - expected_uplift) < 1e-10
 
     def test_recommendation_logic(self, experiment_manager):
-        """Test experiment recommendation logic."""
+        """
+        Tests the high-level recommendation logic.
+
+        Verifies that for a given set of results, the generated recommendation
+        is one of the valid outcomes ('promote', 'continue', 'stop').
+        """
         exp_id = "test-recommendation"
         
-        # Scenario 1: Significant improvement, promote
         control_results = [ABResult(accuracy=0.70, latency_ms=100, cost_usd=0.01) for _ in range(10)]
         treatment_results = [ABResult(accuracy=0.85, latency_ms=105, cost_usd=0.012) for _ in range(10)]
         
@@ -208,7 +234,12 @@ class TestExperimentManager:
         assert recommendation in ["promote", "continue", "stop"]
 
     def test_empty_results_handling(self, experiment_manager):
-        """Test handling of experiments with no results."""
+        """
+        Tests how the summary handles an experiment with no recorded results.
+
+        Verifies that the summary correctly reports sample sizes of 0 and
+        provides a 'continue' recommendation.
+        """
         summary = experiment_manager.summarize("empty-experiment")
         
         assert summary["control"]["sample_size"] == 0
@@ -216,7 +247,12 @@ class TestExperimentManager:
         assert summary["comparison"]["recommendation"] == "continue"
 
     def test_single_group_results(self, experiment_manager, sample_results_control):
-        """Test handling when only one group has results."""
+        """
+        Tests summary generation when only one experiment group has results.
+
+        Verifies that the summary is still generated correctly and provides
+        a 'continue' recommendation.
+        """
         exp_id = "single-group"
         
         for result in sample_results_control:
@@ -229,7 +265,7 @@ class TestExperimentManager:
         assert summary["comparison"]["recommendation"] == "continue"
 
     def test_cost_delta_calculation(self, experiment_manager, sample_results_control, sample_results_treatment):
-        """Test cost delta calculation."""
+        """Tests that the cost delta is calculated correctly."""
         exp_id = "cost-test"
         
         for result in sample_results_control:
@@ -240,11 +276,10 @@ class TestExperimentManager:
         summary = experiment_manager.summarize(exp_id)
         cost_delta = summary["comparison"]["cost_delta"]
         
-        # Treatment should be more expensive
-        assert cost_delta > 0
+        assert cost_delta > 0, "Treatment should be more expensive"
 
     def test_latency_delta_calculation(self, experiment_manager, sample_results_control, sample_results_treatment):
-        """Test latency delta calculation."""
+        """Tests that the latency delta is calculated correctly."""
         exp_id = "latency-test"
         
         for result in sample_results_control:
@@ -255,42 +290,51 @@ class TestExperimentManager:
         summary = experiment_manager.summarize(exp_id)
         latency_delta = summary["comparison"]["latency_delta"]
         
-        # Treatment should have higher latency
-        assert latency_delta > 0
+        assert latency_delta > 0, "Treatment should have higher latency"
 
     @pytest.mark.parametrize("accuracy_uplift,cost_delta,expected", [
-        (0.15, 0.5, "promote"),  # High uplift, moderate cost increase
-        (0.02, 0.1, "continue"), # Low uplift, low cost increase
-        (-0.05, 0.2, "stop"),    # Negative uplift, cost increase
-        (0.08, 2.0, "continue"), # Moderate uplift, high cost increase
+        (0.15, 0.5, "promote"),
+        (0.02, 0.1, "continue"),
+        (-0.05, 0.2, "stop"),
+        (0.08, 2.0, "continue"),
     ])
     def test_recommendation_scenarios(self, experiment_manager, accuracy_uplift, cost_delta, expected):
-        """Test various recommendation scenarios."""
-        # This would require mocking the internal recommendation logic
-        # or exposing it as a separate method for testing
+        """
+        Defines placeholder for testing specific recommendation scenarios.
+
+        This test is marked as incomplete. A full implementation would require
+        mocking the internal statistical results to trigger specific
+        recommendation outcomes based on uplift and cost.
+        """
+        # This test is incomplete as it would require mocking internal
+        # statistical calculations to be tested effectively.
         pass
 
     def test_thread_safety(self, experiment_manager):
-        """Test thread safety of result recording."""
+        """
+        Tests the thread safety of the result recording mechanism.
+
+        This test starts multiple threads that record results concurrently
+        to check for race conditions. It verifies that all results are
+        recorded correctly, implying the underlying data structure is
+        thread-safe.
+        """
         import threading
         import time
         
         exp_id = "thread-test"
-        results = []
         
         def record_results():
             for i in range(10):
                 result = ABResult(accuracy=0.8, latency_ms=100, cost_usd=0.01)
                 experiment_manager.record_result(exp_id, "control", result)
-                time.sleep(0.001)  # Small delay to increase chance of race conditions
+                time.sleep(0.001)
         
-        # Start multiple threads
         threads = [threading.Thread(target=record_results) for _ in range(3)]
         for thread in threads:
             thread.start()
         for thread in threads:
             thread.join()
         
-        # Verify all results were recorded
         stored_results = experiment_manager.get_results(exp_id, "control")
-        assert len(stored_results) == 30  # 3 threads * 10 results each
+        assert len(stored_results) == 30

@@ -10,14 +10,19 @@ INJECTION_PATTERNS = [
 ]
 
 def redteam_scan(text:str) -> Dict[str, float | List[str]]:
-    """
-    Scans text for prompt injection patterns.
+    """Scans text for prompt injection patterns.
+
+    This function uses a list of regular expressions to scan for common prompt
+    injection patterns in the given text.
 
     Args:
-        text (str): The text to scan.
+        text: The text to scan.
 
     Returns:
-        Dict[str, float | List[str]]: A dictionary containing the risk score and a list of matched patterns.
+        A dictionary containing the risk score and a list of matched patterns.
+        The risk score is a float between 0.0 and 1.0, where a higher score
+        indicates a higher risk of prompt injection. The list of matched
+        patterns contains the regular expressions that were found in the text.
     """
     findings = []
     score = 0.0

@@ -2,28 +2,30 @@ import subprocess, shlex
 from typing import Dict
 
 class CosignSigner:
-    """A wrapper around the cosign CLI for signing artifacts."""
+    """A wrapper around the cosign CLI for signing artifacts.
+
+    This class provides a method for signing blobs using the cosign
+    command-line tool.
+    """
     def __init__(self, cosign_bin: str = "cosign", key_ref: str = "cosign.key"):
-        """
-        Initializes the CosignSigner.
+        """Initializes the CosignSigner.
 
         Args:
-            cosign_bin (str, optional): The path to the cosign binary. Defaults to "cosign".
-            key_ref (str, optional): The path to the private key file. Defaults to "cosign.key".
+            cosign_bin: The path to the cosign binary.
+            key_ref: The path to the private key file.
         """
         self.cosign_bin = cosign_bin
         self.key_ref = key_ref
 
     def sign_blob(self, artifact_path: str, signature_out: str) -> Dict:
-        """
-        Signs a blob.
+        """Signs a blob.
 
         Args:
-            artifact_path (str): The path to the artifact to sign.
-            signature_out (str): The path to write the signature to.
+            artifact_path: The path to the artifact to sign.
+            signature_out: The path to write the signature to.
 
         Returns:
-            Dict: A dictionary containing the signing result.
+            A dictionary containing the signing result.
         """
         cmd = f"{self.cosign_bin} sign-blob --key {shlex.quote(self.key_ref)} --output-signature {shlex.quote(signature_out)} {shlex.quote(artifact_path)}"
         try:

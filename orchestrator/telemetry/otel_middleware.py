@@ -6,10 +6,15 @@ import time
 tracer = trace.get_tracer(__name__)
 
 class OpenTelemetryMiddleware(BaseHTTPMiddleware):
-    """A middleware for adding OpenTelemetry tracing to requests."""
+    """A middleware for adding OpenTelemetry tracing to requests.
+
+    This middleware creates a new OpenTelemetry span for each incoming request
+    and records information about the request, such as the method, path, and
+    duration. It also handles exceptions and sets the status of the span
+    accordingly.
+    """
     async def dispatch(self, request, call_next):
-        """
-        Dispatches a request and adds OpenTelemetry tracing.
+        """Dispatches a request and adds OpenTelemetry tracing.
 
         Args:
             request: The request to dispatch.

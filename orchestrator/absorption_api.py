@@ -21,7 +21,7 @@ from urllib.parse import urlparse
 import yaml
 
 class CapabilityType(Enum):
-    """Enum for the different types of capabilities that can be discovered."""
+    """An enum for the different types of capabilities that can be discovered."""
     LLM_API = "llm_api"
     TOOL_API = "tool_api"
     MODEL_HUB = "model_hub"
@@ -30,7 +30,7 @@ class CapabilityType(Enum):
     KNOWLEDGE_BASE = "knowledge_base"
 
 class IntegrationStatus(Enum):
-    """Enum for the different integration statuses of a capability."""
+    """An enum for the different integration statuses of a capability."""
     DISCOVERED = "discovered"
     TESTING = "testing"
     TRIAL_PERIOD = "trial_period"
@@ -40,30 +40,29 @@ class IntegrationStatus(Enum):
 
 @dataclass
 class CapabilitySpec:
-    """
-    Specification of an external capability.
+    """The specification of an external capability.
 
     Attributes:
-        id (str): The unique ID of the capability.
-        name (str): The name of the capability.
-        type (CapabilityType): The type of the capability.
-        endpoint (Optional[str]): The endpoint of the capability.
-        api_key_required (bool): Whether an API key is required.
-        task_types (List[str]): The types of tasks the capability can perform.
-        expected_latency_ms (Optional[int]): The expected latency in milliseconds.
-        cost_per_request (Optional[float]): The cost per request.
-        rate_limits (Optional[Dict[str, Any]]): The rate limits of the capability.
-        description (str): A description of the capability.
-        version (str): The version of the capability.
-        provider (str): The provider of the capability.
-        documentation_url (str): The URL to the documentation.
-        integration_method (str): The integration method.
-        auth_method (str): The authentication method.
-        input_format (str): The input format.
-        output_format (str): The output format.
-        discovered_at (datetime): The timestamp when the capability was discovered.
-        last_tested (datetime): The timestamp when the capability was last tested.
-        status (IntegrationStatus): The integration status of the capability.
+        id: The unique ID of the capability.
+        name: The name of the capability.
+        type: The type of the capability.
+        endpoint: The endpoint of the capability.
+        api_key_required: Whether an API key is required.
+        task_types: The types of tasks the capability can perform.
+        expected_latency_ms: The expected latency in milliseconds.
+        cost_per_request: The cost per request.
+        rate_limits: The rate limits of the capability.
+        description: A description of the capability.
+        version: The version of the capability.
+        provider: The provider of the capability.
+        documentation_url: The URL to the documentation.
+        integration_method: The integration method.
+        auth_method: The authentication method.
+        input_format: The input format.
+        output_format: The output format.
+        discovered_at: The timestamp when the capability was discovered.
+        last_tested: The timestamp when the capability was last tested.
+        status: The integration status of the capability.
     """
     id: str
     name: str
@@ -95,7 +94,7 @@ class CapabilitySpec:
     status: IntegrationStatus = IntegrationStatus.DISCOVERED
     
     def __post_init__(self):
-        """Post-initialization hook."""
+        """A post-initialization hook."""
         if self.task_types is None:
             self.task_types = []
         if self.discovered_at is None:
@@ -103,20 +102,19 @@ class CapabilitySpec:
 
 @dataclass
 class CapabilityTest:
-    """
-    Results from testing a capability.
+    """The results from testing a capability.
 
     Attributes:
-        capability_id (str): The ID of the capability that was tested.
-        test_timestamp (datetime): The timestamp when the test was performed.
-        success (bool): Whether the test was successful.
-        latency_ms (float): The latency of the test in milliseconds.
-        accuracy_score (Optional[float]): The accuracy score of the test.
-        cost_actual (Optional[float]): The actual cost of the test.
-        test_tasks (List[Dict[str, Any]]): The tasks that were tested.
-        outputs (List[Any]): The outputs of the test.
-        errors (List[str]): Any errors that occurred during the test.
-        baseline_comparison (Optional[Dict[str, float]]): A comparison to the baseline.
+        capability_id: The ID of the capability that was tested.
+        test_timestamp: The timestamp when the test was performed.
+        success: Whether the test was successful.
+        latency_ms: The latency of the test in milliseconds.
+        accuracy_score: The accuracy score of the test.
+        cost_actual: The actual cost of the test.
+        test_tasks: The tasks that were tested.
+        outputs: The outputs of the test.
+        errors: Any errors that occurred during the test.
+        baseline_comparison: A comparison to the baseline.
     """
     capability_id: str
     test_timestamp: datetime
@@ -136,7 +134,7 @@ class CapabilityTest:
     baseline_comparison: Optional[Dict[str, float]] = None
     
     def __post_init__(self):
-        """Post-initialization hook."""
+        """A post-initialization hook."""
         if self.test_tasks is None:
             self.test_tasks = []
         if self.outputs is None:
@@ -148,11 +146,10 @@ class CapabilityDiscoverer:
     """Discovers external capabilities from various sources."""
     
     def __init__(self, session: aiohttp.ClientSession):
-        """
-        Initializes the CapabilityDiscoverer.
+        """Initializes the CapabilityDiscoverer.
 
         Args:
-            session (aiohttp.ClientSession): The aiohttp client session to use for requests.
+            session: The aiohttp client session to use for requests.
         """
         self.session = session
         self.logger = logging.getLogger(__name__)
@@ -172,11 +169,10 @@ class CapabilityDiscoverer:
         }
     
     async def discover_from_model_hubs(self) -> List[CapabilitySpec]:
-        """
-        Discovers models from popular model hubs.
+        """Discovers models from popular model hubs.
 
         Returns:
-            List[CapabilitySpec]: A list of discovered capabilities.
+            A list of discovered capabilities.
         """
         capabilities = []
         
@@ -197,7 +193,7 @@ class CapabilityDiscoverer:
         return capabilities
     
     async def _discover_huggingface_models(self) -> List[CapabilitySpec]:
-        """Discover promising models from HuggingFace"""
+        """Discovers promising models from HuggingFace."""
         capabilities = []
         
         # Search for high-quality models in key categories
@@ -239,7 +235,7 @@ class CapabilityDiscoverer:
         return capabilities
     
     async def _discover_replicate_models(self) -> List[CapabilitySpec]:
-        """Discover models from Replicate"""
+        """Discovers models from Replicate."""
         capabilities = []
         
         try:
@@ -271,14 +267,13 @@ class CapabilityDiscoverer:
         return capabilities
     
     async def discover_from_api_endpoints(self, endpoints: List[str]) -> List[CapabilitySpec]:
-        """
-        Discovers capabilities from API endpoints.
+        """Discovers capabilities from API endpoints.
 
         Args:
-            endpoints (List[str]): A list of API endpoints to probe.
+            endpoints: A list of API endpoints to probe.
 
         Returns:
-            List[CapabilitySpec]: A list of discovered capabilities.
+            A list of discovered capabilities.
         """
         capabilities = []
         
@@ -293,7 +288,7 @@ class CapabilityDiscoverer:
         return capabilities
     
     async def _probe_api_endpoint(self, endpoint: str) -> Optional[CapabilitySpec]:
-        """Probe an API endpoint to understand its capabilities"""
+        """Probes an API endpoint to understand its capabilities."""
         try:
             # Try to get OpenAPI/Swagger spec
             spec_urls = [
@@ -320,7 +315,7 @@ class CapabilityDiscoverer:
             return None
     
     async def _basic_http_probe(self, endpoint: str) -> Optional[CapabilitySpec]:
-        """Basic HTTP probe when OpenAPI spec is not available"""
+        """Performs a basic HTTP probe when an OpenAPI spec is not available."""
         try:
             async with self.session.get(endpoint, timeout=5) as response:
                 if response.status in [200, 404, 405]:  # Server is responsive
@@ -341,7 +336,7 @@ class CapabilityDiscoverer:
         return None
     
     def _parse_openapi_spec(self, endpoint: str, spec: Dict[str, Any]) -> CapabilitySpec:
-        """Parse OpenAPI specification to understand API capabilities"""
+        """Parses an OpenAPI specification to understand API capabilities."""
         info = spec.get('info', {})
         paths = spec.get('paths', {})
         
@@ -381,11 +376,10 @@ class CapabilityTester:
     """Tests external capabilities to evaluate their performance."""
     
     def __init__(self, session: aiohttp.ClientSession, test_suite_provider):
-        """
-        Initializes the CapabilityTester.
+        """Initializes the CapabilityTester.
 
         Args:
-            session (aiohttp.ClientSession): The aiohttp client session to use for requests.
+            session: The aiohttp client session to use for requests.
             test_suite_provider: The provider for test suites.
         """
         self.session = session
@@ -394,15 +388,14 @@ class CapabilityTester:
     
     async def test_capability(self, capability: CapabilitySpec, 
                             baseline_agent=None) -> CapabilityTest:
-        """
-        Run comprehensive tests on a capability.
+        """Runs comprehensive tests on a capability.
 
         Args:
-            capability (CapabilitySpec): The capability to test.
-            baseline_agent (Any, optional): The baseline agent to compare against. Defaults to None.
+            capability: The capability to test.
+            baseline_agent: The baseline agent to compare against.
 
         Returns:
-            CapabilityTest: The results of the test.
+            The results of the test.
         """
         test_start = datetime.utcnow()
         
@@ -463,7 +456,7 @@ class CapabilityTester:
     
     async def _execute_test_task(self, capability: CapabilitySpec, 
                                task: Dict[str, Any]) -> Any:
-        """Execute a single test task against the capability"""
+        """Executes a single test task against the capability."""
         if capability.type == CapabilityType.LLM_API:
             return await self._test_llm_api(capability, task)
         elif capability.type == CapabilityType.MODEL_HUB:
@@ -475,7 +468,7 @@ class CapabilityTester:
     
     async def _test_llm_api(self, capability: CapabilitySpec, 
                           task: Dict[str, Any]) -> Any:
-        """Test an LLM API capability"""
+        """Tests an LLM API capability."""
         prompt = task.get('prompt', '')
         
         # Format request based on common API patterns
@@ -519,7 +512,7 @@ class CapabilityTester:
     
     async def _test_model_hub(self, capability: CapabilitySpec, 
                             task: Dict[str, Any]) -> Any:
-        """Test a model hub capability"""
+        """Tests a model hub capability."""
         if 'huggingface' in capability.provider.lower():
             return await self._test_llm_api(capability, task)  # Same as LLM API
         
@@ -550,7 +543,7 @@ class CapabilityTester:
     
     async def _test_tool_api(self, capability: CapabilitySpec, 
                            task: Dict[str, Any]) -> Any:
-        """Test a tool API capability"""
+        """Tests a tool API capability."""
         # Generic API testing - adapt based on task type
         payload = task.get('input_data', {})
         
@@ -572,14 +565,23 @@ class CapabilityTester:
                 raise Exception(f"API returned status {response.status}")
     
     def _get_api_key(self, capability: CapabilitySpec) -> str:
-        """Get API key for the capability (implement secure key management)"""
+        """Gets the API key for the capability.
+
+        This is a placeholder for a real secure key management system.
+
+        Args:
+            capability: The capability to get the API key for.
+
+        Returns:
+            The API key.
+        """
         # This should integrate with your secure key management system
         # For now, return a placeholder
         return "your_api_key_here"
     
     async def _calculate_accuracy(self, test_tasks: List[Dict], 
                                 results: List[Any]) -> float:
-        """Calculate accuracy score based on test results"""
+        """Calculates the accuracy score based on the test results."""
         if not test_tasks or not results:
             return 0.0
         
@@ -601,7 +603,10 @@ class CapabilityTester:
         return correct / total if total > 0 else 0.0
     
     def _extract_text_from_result(self, result: Any) -> str:
-        """Extract text from API result (handle different response formats)"""
+        """Extracts text from an API result.
+
+        This method handles different response formats.
+        """
         if isinstance(result, str):
             return result
         elif isinstance(result, dict):
@@ -618,7 +623,7 @@ class CapabilityTester:
         return str(result)
     
     def _calculate_text_similarity(self, text1: str, text2: str) -> float:
-        """Simple text similarity calculation"""
+        """Performs a simple text similarity calculation."""
         # Implement more sophisticated similarity (e.g., semantic similarity)
         words1 = set(text1.lower().split())
         words2 = set(text2.lower().split())
@@ -631,16 +636,15 @@ class CapabilityTester:
     async def _compare_with_baseline(self, test_tasks: List[Dict], 
                                    results: List[Any], 
                                    baseline_agent) -> Dict[str, float]:
-        """
-        Compare capability performance with baseline agent.
+        """Compares capability performance with a baseline agent.
 
         Args:
-            test_tasks (List[Dict]): The list of test tasks.
-            results (List[Any]): The list of results from the capability.
-            baseline_agent (Any): The baseline agent to compare against.
+            test_tasks: The list of test tasks.
+            results: The list of results from the capability.
+            baseline_agent: The baseline agent to compare against.
 
         Returns:
-            Dict[str, float]: A dictionary of comparison metrics.
+            A dictionary of comparison metrics.
         """
         baseline_results = []
         
@@ -663,7 +667,7 @@ class CapabilityTester:
         }
     
     async def _get_top_performing_capabilities(self) -> List[Dict[str, Any]]:
-        """Get top performing capabilities across all categories"""
+        """Gets the top performing capabilities across all categories."""
         performance_scores = []
         
         for cap_id, capability in self.discovered_capabilities.items():
@@ -707,14 +711,13 @@ class CapabilityTester:
         ]
     
     async def force_integrate_capability(self, capability_id: str) -> bool:
-        """
-        Force integration of a capability (override normal flow).
+        """Forces the integration of a capability, overriding the normal flow.
 
         Args:
-            capability_id (str): The ID of the capability to integrate.
+            capability_id: The ID of the capability to integrate.
 
         Returns:
-            bool: True if integration was successful, False otherwise.
+            True if integration was successful, False otherwise.
         """
         if capability_id not in self.discovered_capabilities:
             return False
@@ -729,14 +732,13 @@ class CapabilityTester:
             return False
     
     async def remove_capability(self, capability_id: str) -> bool:
-        """
-        Remove an integrated capability.
+        """Removes an integrated capability.
 
         Args:
-            capability_id (str): The ID of the capability to remove.
+            capability_id: The ID of the capability to remove.
 
         Returns:
-            bool: True if removal was successful, False otherwise.
+            True if removal was successful, False otherwise.
         """
         if capability_id not in self.integrated_capabilities:
             return False
@@ -762,13 +764,13 @@ class CapabilityTester:
         return False
     
     async def close(self):
-        """Clean shutdown of the absorption API."""
+        """Performs a clean shutdown of the absorption API."""
         await self.session.close()
 
 
 # Example usage and integration
 class MockOrchestrator:
-    """Mock orchestrator for testing the Absorption API"""
+    """A mock orchestrator for testing the Absorption API."""
     
     def __init__(self):
         """Initializes the MockOrchestrator."""
@@ -776,11 +778,10 @@ class MockOrchestrator:
         self.external_capabilities = {}
     
     async def get_agent_for_task_types(self, task_types: List[str]):
-        """
-        Get current agent handling these task types.
+        """Gets the current agent handling these task types.
 
         Args:
-            task_types (List[str]): The types of tasks to get an agent for.
+            task_types: The types of tasks to get an agent for.
 
         Returns:
             A mock agent.
@@ -794,14 +795,13 @@ class MockOrchestrator:
         return MockAgent()
     
     async def integrate_external_capability(self, config: Dict[str, Any]) -> bool:
-        """
-        Integrate an external capability.
+        """Integrates an external capability.
 
         Args:
-            config (Dict[str, Any]): The configuration of the capability to integrate.
+            config: The configuration of the capability to integrate.
 
         Returns:
-            bool: True if integration was successful, False otherwise.
+            True if integration was successful, False otherwise.
         """
         capability_id = config['capability_id']
         self.external_capabilities[capability_id] = config
@@ -813,14 +813,13 @@ class MockOrchestrator:
         return True
     
     async def remove_external_capability(self, capability_id: str) -> bool:
-        """
-        Remove an external capability.
+        """Removes an external capability.
 
         Args:
-            capability_id (str): The ID of the capability to remove.
+            capability_id: The ID of the capability to remove.
 
         Returns:
-            bool: True if removal was successful, False otherwise.
+            True if removal was successful, False otherwise.
         """
         if capability_id in self.external_capabilities:
             del self.external_capabilities[capability_id]
@@ -830,7 +829,7 @@ class MockOrchestrator:
 
 # Example configuration and startup
 async def example_absorption_system():
-    """Example of how to set up and run the Absorption API"""
+    """An example of how to set up and run the Absorption API."""
     
     # Mock dependencies
     class MockMetricsClient:
@@ -891,7 +890,7 @@ if __name__ == "__main__":
         }
 
 class TestSuiteProvider:
-    """Provides test tasks for different capability types"""
+    """Provides test tasks for different capability types."""
     
     def __init__(self):
         """Initializes the TestSuiteProvider."""
@@ -906,14 +905,13 @@ class TestSuiteProvider:
         }
     
     async def get_test_tasks(self, task_types: List[str]) -> List[Dict[str, Any]]:
-        """
-        Get appropriate test tasks for given capability types.
+        """Gets appropriate test tasks for given capability types.
 
         Args:
-            task_types (List[str]): The types of tasks to get tests for.
+            task_types: The types of tasks to get tests for.
 
         Returns:
-            List[Dict[str, Any]]: A list of test tasks.
+            A list of test tasks.
         """
         all_tests = []
         
@@ -1016,14 +1014,14 @@ class TestSuiteProvider:
         ]
 
 class AbsorptionAPI:
-    """
-    Main Absorption API that orchestrates discovery, testing, and integration
-    of external capabilities into the Codessian orchestrator.
+    """The main Absorption API.
+
+    This class orchestrates the discovery, testing, and integration of
+    external capabilities into the Codessian orchestrator.
     """
     
     def __init__(self, orchestrator, metrics_client, policy_engine):
-        """
-        Initializes the AbsorptionAPI.
+        """Initializes the AbsorptionAPI.
 
         Args:
             orchestrator: The main orchestrator.
@@ -1056,7 +1054,7 @@ class AbsorptionAPI:
         }
     
     async def start_absorption_loop(self):
-        """Start the main absorption loop."""
+        """Starts the main absorption loop."""
         self.logger.info("Starting Absorption API loop")
         
         # Schedule periodic tasks
@@ -1066,7 +1064,7 @@ class AbsorptionAPI:
         asyncio.create_task(self._maintenance_loop())
     
     async def _discovery_loop(self):
-        """Continuously discover new capabilities"""
+        """Continuously discovers new capabilities."""
         while True:
             try:
                 self.logger.info("Starting capability discovery")
@@ -1094,7 +1092,7 @@ class AbsorptionAPI:
             await asyncio.sleep(self.config['discovery_interval_hours'] * 3600)
     
     async def _testing_loop(self):
-        """Continuously test discovered capabilities"""
+        """Continuously tests discovered capabilities."""
         while True:
             try:
                 # Find capabilities that need testing
@@ -1125,7 +1123,7 @@ class AbsorptionAPI:
             await asyncio.sleep(self.config['testing_interval_hours'] * 3600)
     
     async def _test_capability_safely(self, capability: CapabilitySpec):
-        """Test a capability with error handling"""
+        """Tests a capability with error handling."""
         try:
             self.logger.info(f"Testing capability: {capability.name}")
             
@@ -1162,7 +1160,7 @@ class AbsorptionAPI:
             capability.status = IntegrationStatus.REJECTED
     
     async def _integration_loop(self):
-        """Handle integration of successful capabilities"""
+        """Handles the integration of successful capabilities."""
         while True:
             try:
                 # Find capabilities ready for integration
@@ -1180,7 +1178,7 @@ class AbsorptionAPI:
             await asyncio.sleep(3600)  # Check every hour
     
     async def _evaluate_for_integration(self, capability: CapabilitySpec):
-        """Evaluate if a capability should be integrated"""
+        """Evaluates if a capability should be integrated."""
         try:
             # Check if trial period is complete
             trial_start = capability.last_tested
@@ -1219,7 +1217,7 @@ class AbsorptionAPI:
             self.logger.error(f"Error evaluating capability {capability.name}: {e}")
     
     async def _integrate_capability(self, capability: CapabilitySpec):
-        """Integrate a capability into the orchestrator"""
+        """Integrates a capability into the orchestrator."""
         try:
             self.logger.info(f"Integrating capability: {capability.name}")
             
@@ -1255,7 +1253,7 @@ class AbsorptionAPI:
             capability.status = IntegrationStatus.REJECTED
     
     def _get_capability_performance_summary(self, capability_id: str) -> Dict[str, Any]:
-        """Get performance summary for a capability"""
+        """Gets the performance summary for a capability."""
         tests = self.test_results.get(capability_id, [])
         if not tests:
             return {}
@@ -1272,7 +1270,7 @@ class AbsorptionAPI:
         }
     
     async def _create_monitoring_policy(self, capability: CapabilitySpec):
-        """Create a policy to monitor integrated capability performance"""
+        """Creates a policy to monitor the performance of an integrated capability."""
         monitoring_policy = {
             'name': f'monitor_{capability.id}',
             'trigger': 'performance_degradation',
@@ -1295,7 +1293,7 @@ class AbsorptionAPI:
         await self.policy_engine.add_dynamic_policy(monitoring_policy)
     
     async def _maintenance_loop(self):
-        """Periodic maintenance and cleanup"""
+        """Performs periodic maintenance and cleanup."""
         while True:
             try:
                 # Clean up old test results
@@ -1326,14 +1324,13 @@ class AbsorptionAPI:
             await asyncio.sleep(24 * 3600)  # Daily maintenance
     
     async def manually_add_capability(self, capability_spec: Dict[str, Any]) -> str:
-        """
-        Manually add a capability for testing and potential integration.
+        """Manually adds a capability for testing and potential integration.
 
         Args:
-            capability_spec (Dict[str, Any]): The specification of the capability to add.
+            capability_spec: The specification of the capability to add.
 
         Returns:
-            str: The ID of the added capability.
+            The ID of the added capability.
         """
         capability = CapabilitySpec(
             id=capability_spec['id'],
@@ -1356,11 +1353,10 @@ class AbsorptionAPI:
         return capability.id
     
     async def get_absorption_status(self) -> Dict[str, Any]:
-        """
-        Get current status of the absorption system.
+        """Gets the current status of the absorption system.
 
         Returns:
-            Dict[str, Any]: A dictionary containing the status of the absorption system.
+            A dictionary containing the status of the absorption system.
         """
         status_counts = {}
         for status in IntegrationStatus:

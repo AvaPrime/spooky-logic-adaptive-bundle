@@ -10,14 +10,17 @@ REQS = Counter("spooky_api_requests_total", "API requests", ["path", "method", "
 LAT = Histogram("spooky_api_latency_seconds", "API latency (s)", buckets=[0.05,0.1,0.25,0.5,1,2,5])
 
 class MetricsMiddleware(BaseHTTPMiddleware):
-    """A middleware for collecting metrics on API requests."""
+    """A middleware for collecting metrics on API requests.
+
+    This middleware collects metrics on the number of requests, latency, and
+    response codes for each API endpoint.
+    """
     async def dispatch(self, request: Request, call_next: Callable):
-        """
-        Dispatches a request and collects metrics.
+        """Dispatches a request and collects metrics.
 
         Args:
-            request (Request): The request to dispatch.
-            call_next (Callable): The next middleware or endpoint to call.
+            request: The request to dispatch.
+            call_next: The next middleware or endpoint to call.
 
         Returns:
             The response from the next middleware or endpoint.
@@ -36,12 +39,15 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         return resp
 
 def mount_metrics(app: FastAPI, path: str = "/metrics"):
-    """
-    Mounts the metrics endpoint on a FastAPI application.
+    """Mounts the metrics endpoint on a FastAPI application.
+
+    This function adds a /metrics endpoint to the given FastAPI application
+    that exposes the latest Prometheus metrics. It also adds the
+    `MetricsMiddleware` to the application to collect metrics on API requests.
 
     Args:
-        app (FastAPI): The FastAPI application to mount the metrics endpoint on.
-        path (str, optional): The path to mount the metrics endpoint on. Defaults to "/metrics".
+        app: The FastAPI application to mount the metrics endpoint on.
+        path: The path to mount the metrics endpoint on.
     """
     @app.get(path)
     def _metrics():
